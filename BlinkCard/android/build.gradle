@@ -1,45 +1,66 @@
-group 'com.microblink.blinkcard.flutter'
-version '1.0'
+group = "com.microblink.blinkcard_flutter"
+version = "1.0-SNAPSHOT"
 
 buildscript {
+    ext.kotlin_version = "2.1.0"
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.5.0'
+        classpath("com.android.tools.build:gradle:8.9.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     }
 }
 
-rootProject.allprojects {
+allprojects {
     repositories {
         google()
-        jcenter()
-        maven { url 'https://maven.microblink.com' }
+        mavenCentral()
     }
 }
 
-apply plugin: 'com.android.library'
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
 
 android {
+    namespace = "com.microblink.blinkcard_flutter"
 
-    if (project.android.hasProperty("namespace")) {
-        namespace 'com.microblink.blinkcard.flutter'
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
-    compileSdkVersion 34
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+        test.java.srcDirs += "src/test/kotlin"
+    }
 
     defaultConfig {
-        minSdkVersion 21
+        minSdk = 24
     }
-    lintOptions {
-        disable 'InvalidPackage'
-    }
-}
 
-dependencies {
-    implementation('com.microblink:blinkcard:2.12.0@aar') {
-        transitive = true
+    dependencies {
+        testImplementation("org.jetbrains.kotlin:kotlin-test")
+        testImplementation("org.mockito:mockito-core:5.0.0")
+    }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+
+            testLogging {
+               events "passed", "skipped", "failed", "standardOut", "standardError"
+               outputs.upToDateWhen {false}
+               showStandardStreams = true
+            }
+        }
     }
 }
