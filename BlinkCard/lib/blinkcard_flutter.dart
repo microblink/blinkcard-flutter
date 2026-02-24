@@ -2,6 +2,10 @@ import 'package:blinkcard_flutter/blinkcard_result.dart';
 import 'package:blinkcard_flutter/blinkcard_settings.dart';
 import 'blinkcard_flutter_platform_interface.dart';
 
+export './types.dart';
+export './blinkcard_settings.dart';
+export './blinkcard_result.dart';
+
 /// BlinkCardFlutter plugin exposes the appropriate native BlinkCard module as a Flutter/Dart module,
 /// based on the detected platform: Android or iOS.
 ///
@@ -75,12 +79,12 @@ class BlinkCardFlutter {
   ///
   Future<BlinkCardScanningResult?> performScan({
     required BlinkCardSdkSettings blinkCardSdkSettings,
-    SessionSettings? sessionSettings,
+    required BlinkCardSessionSettings blinkCardSessionSettings,
     ScanningUxSettings? scanningUxSettings,
   }) async {
     return BlinkCardFlutterPlatform.instance.performScan(
       blinkCardSdkSettings: blinkCardSdkSettings,
-      sessionSettings: sessionSettings,
+      blinkCardSessionSettings: blinkCardSessionSettings,
       scanningUxSettings: scanningUxSettings,
     );
   }
@@ -101,13 +105,13 @@ class BlinkCardFlutter {
   ///
   Future<BlinkCardScanningResult?> performDirectApiScan({
     required BlinkCardSdkSettings blinkCardSdkSettings,
-    SessionSettings? sessionSettings,
+    required BlinkCardSessionSettings blinkCardSessionSettings,
     required String firstSideImage,
     String? secondSideImage,
   }) async {
     return BlinkCardFlutterPlatform.instance.performDirectApiScan(
       blinkCardSdkSettings: blinkCardSdkSettings,
-      sessionSettings: sessionSettings,
+      blinkCardSessionSettings: blinkCardSessionSettings,
       firstSideImage: firstSideImage,
       secondSideImage: secondSideImage,
     );

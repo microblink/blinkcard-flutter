@@ -13,7 +13,7 @@ const ARG_LOAD_SDK = "loadSdk";
 const ARG_UNLOAD_SDK = "unloadSdk";
 
 const ARG_BLINKCARD_SDK_SETTINGS = "blinkCardSdkSettings";
-const ARG_BLINKCARD_SESSION_SETTINGS = "sessionSettings";
+const ARG_BLINKCARD_SESSION_SETTINGS = "blinkCardSessionSettings";
 const ARG_BLINKCARD_SCANNING_UX_SETTINGS = "scanningUxSettings";
 const ARG_DELETE_CACHED_RESOURCES = "deleteCachedResources";
 const ARG_FIRST_SIDE_IMAGE = "firstSideImage";
@@ -37,13 +37,13 @@ class MethodChannelBlinkCardFlutter extends BlinkCardFlutterPlatform {
   final methodChannel = const MethodChannel('blinkcard_flutter');
 
   /// The `performScan` platform channel method launches the BlinkCard scanning process with the default UX properties.
-  /// It takes the following parameters: [BlinkCardSdkSettings], and the optional [SessionSettings] and [ScanningUxSettings] classes.
+  /// It takes the following parameters: [BlinkCardSdkSettings], and the optional [BlinkCardSessionSettings] and [ScanningUxSettings] classes.
   ///
   /// 1. BlinkCard SDK Settings - [BlinkCardSdkSettings]: the class that contains all of the available SDK settings.
   /// It contains settings for the license key, and how the models (that the SDK needs for the scanning process) should be obtained.
   /// To obtain a valid license key, please visit https://developer.microblink.com/ or contact us directly at https://help.microblink.com
   ///
-  /// 2. BlinkCard Session Settings - [SessionSettings]: the class that contains specific scanning configurations that define how the scanning session should behave. If not used, the default `SessionSettings` will be applied.
+  /// 2. BlinkCard Session Settings - [BlinkCardSessionSettings]: the class that contains specific scanning configurations that define how the scanning session should behave. If not used, the default `SessionSettings` will be applied.
   ///
   /// 3. BlinkCard scanning UX settings class - [ScanningUxSettings] - the class that allows customization of various aspects of the UI & UX
   /// used during the scanning process.
@@ -51,21 +51,21 @@ class MethodChannelBlinkCardFlutter extends BlinkCardFlutterPlatform {
   @override
   Future<BlinkCardScanningResult?> performScan({
     required BlinkCardSdkSettings? blinkCardSdkSettings,
-    SessionSettings? sessionSettings,
+    required BlinkCardSessionSettings blinkCardSessionSettings,
     ScanningUxSettings? scanningUxSettings,
   }) async {
-    final jsonBlinkCardResult = await methodChannel.invokeMethod(
-      ARG_PERFORM_SCAN,
-      {
-        ARG_BLINKCARD_SDK_SETTINGS: jsonDecode(
-          jsonEncode(blinkCardSdkSettings),
-        ),
-        ARG_BLINKCARD_SESSION_SETTINGS: jsonDecode(jsonEncode(sessionSettings)),
-        ARG_BLINKCARD_SCANNING_UX_SETTINGS: jsonDecode(
-          jsonEncode(scanningUxSettings),
-        ),
-      },
-    );
+    final jsonBlinkCardResult = await methodChannel
+        .invokeMethod(ARG_PERFORM_SCAN, {
+          ARG_BLINKCARD_SDK_SETTINGS: jsonDecode(
+            jsonEncode(blinkCardSdkSettings),
+          ),
+          ARG_BLINKCARD_SESSION_SETTINGS: jsonDecode(
+            jsonEncode(blinkCardSessionSettings),
+          ),
+          ARG_BLINKCARD_SCANNING_UX_SETTINGS: jsonDecode(
+            jsonEncode(scanningUxSettings),
+          ),
+        });
     final decodedNativeBlinkCardResult = Map<String, dynamic>.from(
       jsonDecode(jsonBlinkCardResult),
     );
@@ -73,13 +73,13 @@ class MethodChannelBlinkCardFlutter extends BlinkCardFlutterPlatform {
   }
 
   /// The `performDirectApiScan` platform channel method launches the BlinkCard scanning process intended for information extraction from static images.
-  /// It takes the following parameters: [BlinkCardSdkSettings], [SessionSettings], `firstImage` [String] in the Base64 format and the optional `secondImage` [String] in the Base64 format.
+  /// It takes the following parameters: [BlinkCardSdkSettings], [BlinkCardSessionSettings], `firstImage` [String] in the Base64 format and the optional `secondImage` [String] in the Base64 format.
   ///
   /// 1. BlinkCard SDK Settings - [BlinkCardSdkSettings]: the class that contains all of the available SDK settings.
   /// It contains settings for the license key, and how the models (that the SDK needs for the scanning process) should be obtained.
   /// To obtain a valid license key, please visit https://developer.microblink.com/ or contact us directly at https://help.microblink.com
   ///
-  /// 2. BlinkCard Session Settings - [SessionSettings]: the class that contains specific scanning configurations that define how the scanning session should behave. If not used, the default `SessionSettings` will be applied.
+  /// 2. BlinkCard Session Settings - [BlinkCardSessionSettings]: the class that contains specific scanning configurations that define how the scanning session should behave. If not used, the default `SessionSettings` will be applied.
   ///
   /// 3. The `firstImage` Base64 string - [String]: image that represents one side of the card.
   /// **Should be the image where the card number is located.**
@@ -89,23 +89,24 @@ class MethodChannelBlinkCardFlutter extends BlinkCardFlutterPlatform {
   @override
   Future<BlinkCardScanningResult?> performDirectApiScan({
     required BlinkCardSdkSettings blinkCardSdkSettings,
-    SessionSettings? sessionSettings,
+    required BlinkCardSessionSettings blinkCardSessionSettings,
     required String firstSideImage,
     String? secondSideImage,
   }) async {
-    final jsonBlinkCardResult = await methodChannel.invokeMethod(
-      ARG_PERFORM_DIRECT_API_SCAN,
-      {
-        ARG_BLINKCARD_SDK_SETTINGS: jsonDecode(
-          jsonEncode(blinkCardSdkSettings),
-        ),
-        ARG_BLINKCARD_SESSION_SETTINGS: jsonDecode(jsonEncode(sessionSettings)),
-        ARG_FIRST_SIDE_IMAGE: firstSideImage,
-        ARG_SECOND_SIDE_IMAGE: secondSideImage,
-      },
-    );
+    final jsonBlinkCardResult = await methodChannel
+        .invokeMethod(ARG_PERFORM_DIRECT_API_SCAN, {
+          ARG_BLINKCARD_SDK_SETTINGS: jsonDecode(
+            jsonEncode(blinkCardSdkSettings),
+          ),
+          ARG_BLINKCARD_SESSION_SETTINGS: jsonDecode(
+            jsonEncode(blinkCardSessionSettings),
+          ),
+          ARG_FIRST_SIDE_IMAGE: firstSideImage,
+          ARG_SECOND_SIDE_IMAGE: secondSideImage,
+        });
+
     final decodedNativeBlinkCardResult = Map<String, dynamic>.from(
-      jsonBlinkCardResult,
+      jsonDecode(jsonBlinkCardResult),
     );
     return BlinkCardScanningResult(decodedNativeBlinkCardResult);
   }

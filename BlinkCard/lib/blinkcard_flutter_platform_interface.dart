@@ -30,12 +30,12 @@ abstract class BlinkCardFlutterPlatform extends PlatformInterface {
   /// See [MethodChannelBlinkCardFlutter] for more detailed information.
   Future<BlinkCardScanningResult?> performScan({
     required BlinkCardSdkSettings blinkCardSdkSettings,
-    SessionSettings? sessionSettings,
+    required BlinkCardSessionSettings blinkCardSessionSettings,
     ScanningUxSettings? scanningUxSettings,
   }) {
     return instance.performScan(
       blinkCardSdkSettings: blinkCardSdkSettings,
-      sessionSettings: sessionSettings,
+      blinkCardSessionSettings: blinkCardSessionSettings,
       scanningUxSettings: scanningUxSettings,
     );
   }
@@ -46,13 +46,13 @@ abstract class BlinkCardFlutterPlatform extends PlatformInterface {
   /// See [MethodChannelBlinkCardFlutter] for more detailed information.
   Future<BlinkCardScanningResult?> performDirectApiScan({
     required BlinkCardSdkSettings blinkCardSdkSettings,
-    SessionSettings? sessionSettings,
+    required BlinkCardSessionSettings blinkCardSessionSettings,
     required String firstSideImage,
     String? secondSideImage,
   }) {
     return instance.performDirectApiScan(
       blinkCardSdkSettings: blinkCardSdkSettings,
-      sessionSettings: sessionSettings,
+      blinkCardSessionSettings: blinkCardSessionSettings,
       firstSideImage: firstSideImage,
       secondSideImage: secondSideImage,
     );
