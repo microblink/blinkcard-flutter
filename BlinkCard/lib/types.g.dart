@@ -8,83 +8,28 @@ part of 'types.dart';
 
 CardNumberAnonymizationSettings _$CardNumberAnonymizationSettingsFromJson(
   Map<String, dynamic> json,
-) =>
-    CardNumberAnonymizationSettings()
-      ..mode = $enumDecode(_$BlinkCardAnonymizationModeEnumMap, json['mode'])
-      ..prefixDigitsVisible = (json['prefixDigitsVisible'] as num).toInt()
-      ..suffixDigitsVisible = (json['suffixDigitsVisible'] as num).toInt();
+) => CardNumberAnonymizationSettings(
+  anonymizationMode:
+      $enumDecodeNullable(
+        _$AnonymizationModeEnumMap,
+        json['anonymizationMode'],
+      ) ??
+      AnonymizationMode.none,
+  prefixDigitsVisible: (json['prefixDigitsVisible'] as num?)?.toInt() ?? 0,
+  suffixDigitsVisible: (json['suffixDigitsVisible'] as num?)?.toInt() ?? 0,
+);
 
 Map<String, dynamic> _$CardNumberAnonymizationSettingsToJson(
   CardNumberAnonymizationSettings instance,
 ) => <String, dynamic>{
-  'mode': _$BlinkCardAnonymizationModeEnumMap[instance.mode]!,
+  'anonymizationMode': _$AnonymizationModeEnumMap[instance.anonymizationMode]!,
   'prefixDigitsVisible': instance.prefixDigitsVisible,
   'suffixDigitsVisible': instance.suffixDigitsVisible,
 };
 
-const _$BlinkCardAnonymizationModeEnumMap = {
-  BlinkCardAnonymizationMode.None: 0,
-  BlinkCardAnonymizationMode.ImageOnly: 1,
-  BlinkCardAnonymizationMode.FieldsOnly: 2,
-  BlinkCardAnonymizationMode.FullResult: 3,
-};
-
-BlinkCardAnonymizationSettings _$BlinkCardAnonymizationSettingsFromJson(
-  Map<String, dynamic> json,
-) =>
-    BlinkCardAnonymizationSettings()
-      ..cardNumberAnonymizationSettings =
-          json['cardNumberAnonymizationSettings'] == null
-              ? null
-              : CardNumberAnonymizationSettings.fromJson(
-                json['cardNumberAnonymizationSettings'] as Map<String, dynamic>,
-              )
-      ..cardNumberPrefixAnonymizationMode = $enumDecode(
-        _$BlinkCardAnonymizationModeEnumMap,
-        json['cardNumberPrefixAnonymizationMode'],
-      )
-      ..cvvAnonymizationMode = $enumDecode(
-        _$BlinkCardAnonymizationModeEnumMap,
-        json['cvvAnonymizationMode'],
-      )
-      ..ibanAnonymizationMode = $enumDecode(
-        _$BlinkCardAnonymizationModeEnumMap,
-        json['ibanAnonymizationMode'],
-      )
-      ..ownerAnonymizationMode = $enumDecode(
-        _$BlinkCardAnonymizationModeEnumMap,
-        json['ownerAnonymizationMode'],
-      );
-
-Map<String, dynamic> _$BlinkCardAnonymizationSettingsToJson(
-  BlinkCardAnonymizationSettings instance,
-) => <String, dynamic>{
-  'cardNumberAnonymizationSettings': instance.cardNumberAnonymizationSettings,
-  'cardNumberPrefixAnonymizationMode':
-      _$BlinkCardAnonymizationModeEnumMap[instance
-          .cardNumberPrefixAnonymizationMode]!,
-  'cvvAnonymizationMode':
-      _$BlinkCardAnonymizationModeEnumMap[instance.cvvAnonymizationMode]!,
-  'ibanAnonymizationMode':
-      _$BlinkCardAnonymizationModeEnumMap[instance.ibanAnonymizationMode]!,
-  'ownerAnonymizationMode':
-      _$BlinkCardAnonymizationModeEnumMap[instance.ownerAnonymizationMode]!,
-};
-
-ImageExtensionFactors _$ImageExtensionFactorsFromJson(
-  Map<String, dynamic> json,
-) =>
-    ImageExtensionFactors()
-      ..upFactor = (json['upFactor'] as num?)?.toDouble()
-      ..rightFactor = (json['rightFactor'] as num?)?.toDouble()
-      ..downFactor = (json['downFactor'] as num?)?.toDouble()
-      ..leftFactor = (json['leftFactor'] as num?)?.toDouble();
-
-Map<String, dynamic> _$ImageExtensionFactorsToJson(
-  ImageExtensionFactors instance,
-) => <String, dynamic>{
-  'upFactor': instance.upFactor,
-  'rightFactor': instance.rightFactor,
-  'downFactor': instance.downFactor,
-  'leftFactor': instance.leftFactor,
+const _$AnonymizationModeEnumMap = {
+  AnonymizationMode.none: 'none',
+  AnonymizationMode.imageOnly: 'imageOnly',
+  AnonymizationMode.resultFieldsOnly: 'resultFieldsOnly',
+  AnonymizationMode.fullResult: 'fullResult',
 };

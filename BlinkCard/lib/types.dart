@@ -1,237 +1,128 @@
 import 'package:json_annotation/json_annotation.dart';
-
 part 'types.g.dart';
 
-/// Represents a date extracted from image.
-class Date {
-  /// day in month
-  int? day;
-
-  /// month in year
-  int? month;
-
-  /// year
-  int? year;
-
-  Date(Map<String, dynamic> nativeDate) {
-    this.day = nativeDate['day'];
-    this.month = nativeDate['month'];
-    this.year = nativeDate['year'];
-  }
-}
-
-/// Represents a point in image
-class Point {
-  /// x coordinate of the point
-  double? x;
-
-  /// y coordinate of the point
-  double? y;
-
-  Point(Map<String, dynamic> nativePoint) {
-    this.x = nativePoint['x'] != null ? nativePoint['x'] * 1.0 : null;
-    this.y = nativePoint['y'] != null ? nativePoint['y'] * 1.0 : null;
-  }
-}
-
-/// Represents a quadrilateral location in the image
-class Quadrilateral {
-  /// upper left point of the quadrilateral
-  Point? upperLeft;
-
-  /// upper right point of the quadrilateral
-  Point? upperRight;
-
-  /// lower left point of the quadrilateral
-  Point? lowerLeft;
-
-  /// lower right point of the quadrilateral
-  Point? lowerRight;
-
-  Quadrilateral(Map<String, dynamic> nativeQuad) {
-    this.upperLeft = Point(Map<String, dynamic>.from(nativeQuad['upperLeft']));
-    this.upperRight = Point(
-      Map<String, dynamic>.from(nativeQuad['upperRight']),
-    );
-    this.lowerLeft = Point(Map<String, dynamic>.from(nativeQuad['lowerLeft']));
-    this.lowerRight = Point(
-      Map<String, dynamic>.from(nativeQuad['lowerRight']),
-    );
-  }
-}
-
-/// Supported BlinkCard card issuer values.
-enum Issuer {
-  /// Unidentified Card
-  Other,
-
-  /// The American Express Company Card
-  AmericanExpress,
-
-  /// China UnionPay Card
-  ChinaUnionPay,
-
-  /// Diners Club International Card
-  Diners,
-
-  /// Discover Card
-  DiscoverCard,
-
-  /// Elo card association
-  Elo,
-
-  /// The JCB Company Card
-  Jcb,
-
-  /// Maestro Debit Card
-  Maestro,
-
-  /// Mastercard Inc. Card
-  Mastercard,
-
-  /// RuPay
-  RuPay,
-
-  /// Interswitch Verve Card
-  Verve,
-
-  /// Visa Inc. Card
-  Visa,
-
-  /// VPay
-  VPay,
-}
-
-/// Supported BlinkCard cprocessing status.
-enum BlinkCardProcessingStatus {
-  /// Recognition was successful.
-  Success,
-
-  /// Detection of the document failed.
-  DetectionFailed,
-
-  /// Preprocessing of the input image has failed.
-  ImagePreprocessingFailed,
-
-  /// Recognizer has inconsistent results.
-  StabilityTestFailed,
-
-  /// Wrong side of the document has been scanned.
-  ScanningWrongSide,
-
-  /// Identification of the fields present on the document has failed.
-  FieldIdentificationFailed,
-
-  /// Failed to return a requested image.
-  ImageReturnFailed,
-
-  /// Payment card currently not supported by the recognizer.
-  UnsupportedCard,
-}
-
-/// Determines which data is anonymized in the returned recognizer result.
-enum BlinkCardAnonymizationMode {
-  /// No anonymization is performed in this mode.
-  @JsonValue(0)
-  None,
-
-  /// Sensitive data in the document image is anonymized with black boxes covering selected sensitive data. Data returned in result fields is not changed.
-  @JsonValue(1)
-  ImageOnly,
-
-  /// Document image is not changed. Data returned in result fields is redacted.
-  @JsonValue(2)
-  FieldsOnly,
-
-  /// Sensitive data in the image is anonymized with black boxes covering selected sensitive data. Data returned in result fields is redacted.
-  @JsonValue(3)
-  FullResult,
-}
-
-///Enumerates the possible match levels indicating the strictness of a check result. Higher is stricter.
-enum BlinkCardMatchLevel {
-  /// Match level is disabled.
-  @JsonValue(0)
-  Disabled,
-
-  /// Match level one.
-  @JsonValue(1)
-  Level1,
-
-  /// Match level two
-  @JsonValue(2)
-  Level2,
-
-  /// Match level three
-  @JsonValue(3)
-  Level3,
-
-  /// Match level four
-  @JsonValue(4)
-  Level4,
-
-  /// Match level five
-  @JsonValue(5)
-  Level5,
-
-  /// Match level six
-  @JsonValue(6)
-  Level6,
-
-  /// Match level seven
-  @JsonValue(7)
-  Level7,
-
-  /// Match level eight
-  @JsonValue(8)
-  Level8,
-
-  /// Match level nine
-  @JsonValue(9)
-  Level9,
-
-  /// Match level ten. Most strict match level
-  @JsonValue(10)
-  Level10,
-}
-
 /// Represents the different levels of detection sensitivity.
-enum BlinkCardDetectionLevel {
-  @JsonValue(0)
-  Off,
-  @JsonValue(1)
-  Low,
-  @JsonValue(2)
-  Mid,
-  @JsonValue(3)
-  High,
+///
+/// This enum is used to configure detection thresholds and enable or disable detection functionality.
+/// The levels range from turning detection off completely to setting various levels of sensitivity (Low, Mid, High).
+enum DetectionLevel {
+  @JsonValue("off")
+  off,
+  @JsonValue("low")
+  low,
+  @JsonValue("mid")
+  mid,
+  @JsonValue("high")
+  high,
 }
 
-///Enumerates the possible results of BlinkCard's document liveness checks.
-enum BlinkCardCheckResult {
-  /// Indicates that the check was not performed.
-  NotPerformed,
+/// Defines the strictness level used by various models to control detection sensitivity.
+///
+/// Higher levels apply stricter validation criteria, improving security and reducing false accepts (FAR), but may increase false rejects (FRR).
+///
+/// Levels are ordered by increasing strictness:
+///
+/// 1. Disabled turns the check off.
+/// 2. The first active level has the lowest FRR and highest FAR.
+/// 3. The last level has the highest FRR and lowest FAR.
+enum StrictnessLevel {
+  @JsonValue("disabled")
+  disabled,
+  @JsonValue("level1")
+  level1,
+  @JsonValue("level2")
+  level2,
+  @JsonValue("level3")
+  level3,
+  @JsonValue("level4")
+  level4,
+  @JsonValue("level5")
+  level5,
+  @JsonValue("level6")
+  level6,
+  @JsonValue("level7")
+  level7,
+  @JsonValue("level8")
+  level8,
+  @JsonValue("level9")
+  level9,
+  @JsonValue("level10")
+  level10,
+}
 
-  /// Indicates that the document passed the check successfully.
-  Pass,
+/// Result of a single check performed during the document verification process.
+enum CheckResult {
+  @JsonValue("notPerformed")
+  notPerformed,
+  @JsonValue("pass")
+  pass,
+  @JsonValue("fail")
+  fail;
 
-  ///Indicates that the document failed the check.
-  Fail,
+  static CheckResult fromString(String s) => switch (s) {
+    "notPerformed" => notPerformed,
+    "pass" => pass,
+    "fail" => fail,
+    _ => notPerformed,
+  };
+}
+
+/// Represents level of anonymization performed on the scanning result.
+enum AnonymizationMode {
+  /// Anonymization will not be performed.
+  @JsonValue("none")
+  none,
+
+  /// Full document image is anonymized with black boxes covering sensitive data.
+  @JsonValue("imageOnly")
+  imageOnly,
+
+  /// Result fields containing sensitive data are removed from result.
+  @JsonValue("resultFieldsOnly")
+  resultFieldsOnly,
+
+  /// This mode is combination of ImageOnly and ResultFieldsOnly modes.
+  @JsonValue("fullResult")
+  fullResult,
+}
+
+/// Represents camera positions used for card information extraction.
+enum CameraPosition {
+  /// Front-facing camera
+  @JsonValue("front")
+  front,
+
+  /// Back-facing camera
+  @JsonValue("back")
+  back,
 }
 
 /// Holds the settings which control card number anonymization.
 @JsonSerializable()
-class CardNumberAnonymizationSettings {
+final class CardNumberAnonymizationSettings {
   /// Defines the mode of card number anonymization.
-  BlinkCardAnonymizationMode mode = BlinkCardAnonymizationMode.None;
+  ///
+  /// Default: [AnonymizationMode.none]
+  AnonymizationMode anonymizationMode;
 
-  /// Defines how many digits at the beginning of the card number remain visible after anonymization.
-  int prefixDigitsVisible = 0;
+  /// Defines how many digits at the beginning
+  /// of the card number remain visible after anonymization.
+  ///
+  /// Default: `0`
+  int prefixDigitsVisible;
 
-  /// Defines how many digits at the end of the card number remain visible after anonymization.
-  int suffixDigitsVisible = 0;
+  /// Defines how many digits at the end
+  /// of the card number remain visible after anonymization.
+  ///
+  /// Default: `0`
+  int suffixDigitsVisible;
 
-  CardNumberAnonymizationSettings();
+  /// Holds the settings which control card number anonymization.
+  CardNumberAnonymizationSettings({
+    this.anonymizationMode = AnonymizationMode.none,
+    this.prefixDigitsVisible = 0,
+    this.suffixDigitsVisible = 0,
+  });
 
   factory CardNumberAnonymizationSettings.fromJson(Map<String, dynamic> json) =>
       _$CardNumberAnonymizationSettingsFromJson(json);
@@ -239,178 +130,143 @@ class CardNumberAnonymizationSettings {
       _$CardNumberAnonymizationSettingsToJson(this);
 }
 
-/// Holds the settings which control card anonymization.
-@JsonSerializable()
-class BlinkCardAnonymizationSettings {
-  /// Defines the parameters of card number anonymization.
-  CardNumberAnonymizationSettings? cardNumberAnonymizationSettings =
-      new CardNumberAnonymizationSettings();
+/// Represents the account information of a single account on a card.
+final class CardAccountResult {
+  /// The card number as scanned from the card.
+  final String cardNumber;
 
-  /// Defines the mode of card number prefix anonymization.
-  BlinkCardAnonymizationMode cardNumberPrefixAnonymizationMode =
-      BlinkCardAnonymizationMode.None;
+  /// Indicates whether the scanned card number is valid according to the Luhn algorithm.
+  final bool cardNumberValid;
 
-  /// Defines the mode of CVV anonymization.
-  BlinkCardAnonymizationMode cvvAnonymizationMode =
-      BlinkCardAnonymizationMode.None;
+  /// The payment card's number prefix.
+  final String? cardNumberPrefix;
 
-  /// Defines the mode of IBAN anonymization.
-  BlinkCardAnonymizationMode ibanAnonymizationMode =
-      BlinkCardAnonymizationMode.None;
+  /// The payment card's security code/value.
+  final String? cvv;
 
-  /// Defines the mode of owner anonymization.
-  BlinkCardAnonymizationMode ownerAnonymizationMode =
-      BlinkCardAnonymizationMode.None;
+  /// The payment card's expiry date.
+  final DateResult<String>? expiryDate;
 
-  BlinkCardAnonymizationSettings();
+  /// The card funding type (e.g., "DEBIT", "CREDIT", "CHARGE CARD").
+  final String? fundingType;
 
-  factory BlinkCardAnonymizationSettings.fromJson(Map<String, dynamic> json) =>
-      _$BlinkCardAnonymizationSettingsFromJson(json);
-  Map<String, dynamic> toJson() => _$BlinkCardAnonymizationSettingsToJson(this);
+  /// The category of the payment card
+  /// (e.g., "PERSONAL", "BUSINESS", "PREPAID").
+  ///
+  /// This information typically indicates the card's tier or service level.
+  final String? cardCategory;
+
+  /// The name of the financial institution that issued the payment card.
+  final String? issuerName;
+
+  /// The ISO 3166-1 alpha-3 country code of the card issuer's country (e.g., "USA", "GBR", "HRV").
+  final String? issuerCountryCode;
+
+  /// The name of the card issuer's country.
+  final String? issuerCountry;
+
+  CardAccountResult(Map<String, dynamic> nativeCardAccountResult)
+    : cardNumber = nativeCardAccountResult["cardNumber"],
+      cardNumberValid = nativeCardAccountResult["cardNumberValid"],
+      cardNumberPrefix = nativeCardAccountResult["cardNumberPrefix"],
+      cvv = nativeCardAccountResult["cvv"],
+      expiryDate =
+          nativeCardAccountResult["expiryDate"] != null
+              ? DateResult(nativeCardAccountResult["expiryDate"])
+              : null,
+      fundingType = nativeCardAccountResult["fundingType"],
+      cardCategory = nativeCardAccountResult["cardCategory"],
+      issuerName = nativeCardAccountResult["issuerName"],
+      issuerCountryCode = nativeCardAccountResult["issuerCountryCode"],
+      issuerCountry = nativeCardAccountResult["issuerCountry"];
 }
 
-///Represents the card side for liveness checks
-class BlinkCardSide {
-  /// Retrieves the result of the check indicating the presence of a live hand.
-  BlinkCardCheckResult? handPresenceCheck;
+/// Represents the result of the date extraction.
+final class DateResult<StringType> {
+  /// Day of the month.
+  ///
+  /// The first day of the month has value `1`
+  final int? day;
 
-  /// Retrieves the result of the check performed on the document using photocopy detection.
-  BlinkCardCheckResult? photocopyCheck;
+  /// Month of the year.
+  ///
+  /// The first month of the year has value `1`
+  final int? month;
 
-  /// Retrieves the result of the check performed on the document using screen detection.
-  BlinkCardCheckResult? screenCheck;
+  /// Full year.
+  final int? year;
 
-  BlinkCardSide(Map<String, dynamic> nativeCardSide) {
-    this.handPresenceCheck =
-        BlinkCardCheckResult.values[nativeCardSide['handPresenceCheck']];
-    this.photocopyCheck =
-        BlinkCardCheckResult.values[nativeCardSide['photocopyCheck']];
-    this.screenCheck =
-        BlinkCardCheckResult.values[nativeCardSide['screenCheck']];
-  }
+  /// Original string representation of the date which has been extracted.
+  final StringType originalString;
+
+  /// Indicates that date does not appear on the document
+  /// but is filled by our internal domain knowledge.
+  final bool filledByDomainKnowledge;
+
+  /// Indicates whether date was successfully parsed.
+  final bool successfullyParsed;
+
+  DateResult(Map<String, dynamic> nativeDateResult)
+    : day = nativeDateResult["day"],
+      month = nativeDateResult["month"],
+      year = nativeDateResult["year"],
+      originalString = nativeDateResult["originalString"],
+      filledByDomainKnowledge =
+          nativeDateResult["filledByDomainKnowledge"] ?? false,
+      successfullyParsed = nativeDateResult["successfullyParsed"] ?? true;
 }
 
-/// Represents the result of liveness checks on both sides (front and back) of a card.
-class DocumentLivenessCheckResult {
-  ///  Returns the document liveness result of the first side.
-  BlinkCardSide? front;
+/// Represents the result of scanning a single side of the card.
+///
+/// Contains the cropped card image and liveness check results
+/// from scanning one side of a card.
+final class BlinkCardSingleSideScanningResult {
+  /// The cropped image of the scanned card, or null if image capture failed.
+  final CroppedImageResult? cardImage;
 
-  /// Return the document liveness result of the back side.
-  BlinkCardSide? back;
+  /// The result of the card liveness verification check.
+  final CardLivenessCheckResult cardLivenessCheckResult;
 
-  DocumentLivenessCheckResult(
-    Map<String, dynamic> nativeDocumentLivenessCheckResult,
-  ) {
-    this.front =
-        nativeDocumentLivenessCheckResult['front'] != null
-            ? BlinkCardSide(
-              Map<String, dynamic>.from(
-                nativeDocumentLivenessCheckResult['front'],
-              ),
-            )
-            : null;
-    this.back =
-        nativeDocumentLivenessCheckResult['back'] != null
-            ? BlinkCardSide(
-              Map<String, dynamic>.from(
-                nativeDocumentLivenessCheckResult['back'],
-              ),
-            )
-            : null;
-  }
+  BlinkCardSingleSideScanningResult(
+    Map<String, dynamic> nativeBlinkCardSingleSideScanningResult,
+  ) : cardImage =
+          nativeBlinkCardSingleSideScanningResult["cardImage"] != null
+              ? CroppedImageResult(
+                nativeBlinkCardSingleSideScanningResult["cardImage"],
+              )
+              : null,
+      cardLivenessCheckResult = CardLivenessCheckResult.fromMap(
+        nativeBlinkCardSingleSideScanningResult["cardLivenessCheckResult"],
+      );
 }
 
-/// Extension factors relative to corresponding dimension of the full image. For example,
-/// upFactor and downFactor define extensions relative to image height, e.g.
-/// when upFactor is 0.5, upper image boundary will be extended for half of image's full
-/// height.
-@JsonSerializable()
-class ImageExtensionFactors {
-  /// image extension factor relative to full image height in UP direction.
-  double? upFactor = 0.0;
+final class CroppedImageResult {
+  final String? image;
 
-  /// image extension factor relative to full image height in RIGHT direction.
-  double? rightFactor = 0.0;
-
-  /// image extension factor relative to full image height in DOWN direction.
-  double? downFactor = 0.0;
-
-  /// image extension factor relative to full image height in LEFT direction.
-  double? leftFactor = 0.0;
-
-  ImageExtensionFactors();
-
-  factory ImageExtensionFactors.fromJson(Map<String, dynamic> json) =>
-      _$ImageExtensionFactorsFromJson(json);
-  Map<String, dynamic> toJson() => _$ImageExtensionFactorsToJson(this);
+  CroppedImageResult(Map<String, dynamic> nativeCroppedImageResult)
+    : image = nativeCroppedImageResult["image"];
 }
 
-/// Result of the data matching algorithm for scanned parts/sides of the document.
-enum DataMatchState {
-  /// Data matching has not been performed.
-  NotPerformed,
+/// Structure representing the result of liveness checks for a card.
+final class CardLivenessCheckResult {
+  /// Result of the liveness check that detects whether the card is displayed on a screen.
+  final CheckResult screenCheckResult;
 
-  /// Data does not match.
-  Failed,
+  /// Result of the liveness check that detects whether the input image is a photocopy of a card.
+  final CheckResult photocopyCheckResult;
 
-  /// Data match.
-  Success,
-}
+  /// Result of the liveness check that detects whether a card is being held in human hands.
+  final CheckResult cardHeldInHandCheckResult;
 
-/// Defines possible Android device camera video resolution preset
-enum AndroidCameraResolutionPreset {
-  /// Will choose camera video resolution which is best for current device.
-  @JsonValue(0)
-  PresetDefault,
-
-  /// Attempts to choose camera video resolution as closely as 480p.
-  @JsonValue(1)
-  Preset480p,
-
-  /// Attempts to choose camera video resolution as closely as 720p.
-  @JsonValue(2)
-  Preset720p,
-
-  /// Attempts to choose camera video resolution as closely as 1080p.
-  @JsonValue(3)
-  Preset1080p,
-
-  /// Attempts to choose camera video resolution as closely as 2160p.
-  @JsonValue(4)
-  Preset2160p,
-
-  /// Will choose max available camera video resolution.
-  @JsonValue(5)
-  PresetMaxAvailable,
-}
-
-/// Define possible iOS device camera video resolution preset
-enum iOSCameraResolutionPreset {
-  /// 480p video will always be used.
-  @JsonValue(0)
-  Preset480p,
-
-  /// 720p video will always be used.
-  @JsonValue(1)
-  Preset720p,
-
-  /// 1080p video will always be used.
-  @JsonValue(2)
-  Preset1080p,
-
-  /// 4K video will always be used.
-  @JsonValue(3)
-  Preset4K,
-
-  /// The library will calculate optimal resolution based on the use case and device used.
-  @JsonValue(4)
-  PresetOptimal,
-
-  /// Device's maximal video resolution will be used.
-  @JsonValue(5)
-  PresetMax,
-
-  /// Device's photo preview resolution will be used.
-  @JsonValue(6)
-  PresetPhoto,
+  CardLivenessCheckResult.fromMap(
+    Map<String, dynamic> nativeCardLivenessCheckResult,
+  ) : screenCheckResult = CheckResult.fromString(
+        nativeCardLivenessCheckResult['screenCheckResult'],
+      ),
+      photocopyCheckResult = CheckResult.fromString(
+        nativeCardLivenessCheckResult['photocopyCheckResult'],
+      ),
+      cardHeldInHandCheckResult = CheckResult.fromString(
+        nativeCardLivenessCheckResult['cardHeldInHandCheckResult'],
+      );
 }

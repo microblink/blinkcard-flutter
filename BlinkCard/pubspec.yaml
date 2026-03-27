@@ -1,6 +1,6 @@
 name: blinkcard_flutter
-description: Flutter plugin for BlinkCard, SDK for scanning and OCR of various credit cards.
-version: 2.12.0
+description: "Flutter plugin for BlinkCard, SDK for scanning and OCR of various identity documents."
+version: 3000.0.0
 homepage: https://microblink.com
 
 environment:
@@ -10,7 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  json_annotation: ^4.1.0
+  plugin_platform_interface: ^2.0.2
+  json_annotation: ^4.9.0
 
 dev_dependencies:
   flutter_test:
@@ -19,15 +20,7 @@ dev_dependencies:
   build_runner: ^2.3.3
   json_serializable: ^6.6.1
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter.
 flutter:
-  # This section identifies this Flutter project as a plugin project.
-  # The 'pluginClass' and Android 'package' identifiers should not ordinarily
-  # be modified. They are used by the tooling to maintain consistency when
-  # adding or updating assets for this project.
   plugin:
     platforms:
       android:
