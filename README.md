@@ -6,7 +6,7 @@
 
 The BlinkCard SDK is a comprehensive solution for implementing secure card scanning on Flutter. It offers powerful capabilities for capturing and analyzing a wide range of payment cards. The package consists of BlinkCard, which serves as the core module, and the BlinkCardUX package that provides a complete, ready-to-use solution with a user-friendly interface.
 
-**Please note that, for maximum performance and full access to all features, it’s best to go with one of our native SDKs (for [iOS](https://github.com/BlinkCard/blinkcard-ios) or [Android](https://github.com/BlinkCard/blinkcard-android)).**
+**Please note that, for maximum performance and full access to all features, it’s best to go with one of our native SDKs (for [iOS](https://github.com/microblink/blinkcard-ios) or [Android](https://github.com/microblink/blinkcard-android)).**
 
 However, since the wrapper is open source, you can add the features you need on your own.
 
@@ -36,7 +36,7 @@ A valid license key is required to initialize the BlinkCard plugin. A free trial
 
 
 - For additional help with the Flutter setup, view the official [documentation](https://flutter.dev/docs).
-- For more detailed information about the BlinkCard Android and iOS requirements, view the native SDK documentation here ([Android](https://github.com/blinkcard/blinkcard-android?tab=readme-ov-file#device-requirements) & [iOS](https://github.com/blinkcard/blinkcard-ios?tab=readme-ov-file#requirements)).
+- For more detailed information about the BlinkCard Android and iOS requirements, view the native SDK documentation here ([Android](https://github.com/microblink/blinkcard-android?tab=readme-ov-file#device-requirements) & [iOS](https://github.com/microblink/blinkcard-ios?tab=readme-ov-file#requirements)).
 
 
 ## <a name="quickstart-with-the-sample-application"></a> Quickstart with the sample application
@@ -48,7 +48,7 @@ The sample application demonstrates how the BlinkCard plugin is implemented, use
 To obtain and run the sample application, follow the steps below:
 1. Git clone the repository:
 ```bash
-git clone https://github.com/BlinkCard/blinkcard-flutter.git
+git clone https://github.com/microblink/blinkcard-flutter.git
 ```
 2. Position to the obtained BlinkCard folder and run the `initBlinkCardFlutterSample.sh` script:
 ```bash
@@ -226,7 +226,7 @@ final blinkCardResult = await blinkCardPlugin.performScan(
       );
 ```
 
-- The whole integration process can be found in the sample app `main.dart` file [here](https://github.com/BlinkCard/blinkcard-flutter/blob/main/sample_files/main.dart).
+- The whole integration process can be found in the sample app `main.dart` file [here](https://github.com/microblink/blinkcard-flutter/blob/main/sample_files/main.dart).
 - The settings and the results that can be used with the BlinkCard plugin can be found in the paragraphs below, but also in the comments of each BlinkCard Dart file.
 
 ## <a name="plugin-specifics"></a> Plugin specifics
@@ -249,7 +249,7 @@ It takes the following parameters:
 
 **BlinkCard Scanning UX settings** - `ScanningUxSettings` - the optional class that allows customization of various aspects of the UI used during the scanning process.
 
-- The implementation of the `performScan` method can be viewed here in the [blinkcard_flutter_method_channel.dart](https://github.com/BlinkCard/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_flutter_method_channel.dart) file.
+- The implementation of the `performScan` method can be viewed here in the [blinkcard_flutter_method_channel.dart](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_flutter_method_channel.dart) file.
 
 **The `performDirectApiScan` method**
 
@@ -271,7 +271,7 @@ The first image Base64 string - `String`: image that represents one side of the 
 The optional second image Base64 string - `String`: image that represents one side of the card.
 - Required only if not all information specified in `ExtractionSettings` can be obtained from the first side of the card.
 
-- The implementation of the `performDirectApiScanning` method can be viewed here in the [blinkcard_flutter_method_channel.dart](https://github.com/BlinkCard/BlinkCard-flutter/blob/main/BlinkCard/lib/blinkCard_flutter_method_channel.dart) file.
+- The implementation of the `performDirectApiScanning` method can be viewed here in the [blinkcard_flutter_method_channel.dart](https://github.com/microblink/BlinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_flutter_method_channel.dart) file.
 
 ### <a name="sdk-loading--unloading"></a> SDK loading & unloading
 The BlinkCard SDK also contains methods for loading and unloading. These methods can be called before the scanning methods described above to preload the required resources and reduce the startup time of a scanning session. They can also be used to release resources after the scanning session has finished.
@@ -307,43 +307,43 @@ The BlinkCard SDK contains various settings, modifying different parts of scanni
 - Cropped image settings
 - Scanning UX settings
 
-1. [BlinkCard SDK settings](https://github.com/BlinkCard/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L6) - `BlinkCardSdkSettings` \
+1. [BlinkCard SDK settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L6) - `BlinkCardSdkSettings` \
 These settings are used for the initialization of the BlinkCard SDK. It contains settings for the license key, and how the models (that the SDK needs for the scanning process) should be obtained.
 
-2. [BlinkCard Session settings](https://github.com/BlinkCard/blinkcard-flutter/main/BlinkCard/lib/blinkCard_settings.dart#L55) - `BlinkCardSessionSettings`\
+2. [BlinkCard Session settings](https://github.com/microblink/blinkcard-flutter/main/BlinkCard/lib/blinkCard_settings.dart#L55) - `BlinkCardSessionSettings`\
 These settings represent the configuration settings for a scanning session.\
 The class that contains specific scanning configurations that define how the scanning session should behave.
 
-3. [Scanning settings](https://github.com/BlinkCard/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L87) - `ScanningSettings`\
+3. [Scanning settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L87) - `ScanningSettings`\
 These settings represent the configurable settings for scanning a card.\
 This class defines various parameters and policies related to the scanning process, including image quality handling, data extraction, anonymization, and liveness detection, along with options for frame processing and image extraction.
 
-4. [Liveness settings](https://github.com/BlinkCard/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L159) - `LivenessSettings`\
+4. [Liveness settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L159) - `LivenessSettings`\
 Settings for liveness detection during card scanning.\
 This class defines various parameters that control the behavior of liveness detection, including thresholds for hand detection, screen and photocopy analysis, and options to skip processing certain frames based on liveness criteria.
 
-5. [Extraction settings](https://github.com/BlinkCard/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L227) - `ExtractionSettings`\
+5. [Extraction settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L227) - `ExtractionSettings`\
 Settings that control which fields and images should be extracted from the payment card.\
 Disabling extraction of unused fields can improve recognition performance or reduce memory usage.
 
-6. [Anonymization settings](https://github.com/BlinkCard/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L318) - `AnonymizationSettings`\
+6. [Anonymization settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L318) - `AnonymizationSettings`\
 Holds the settings which control the anonymization of returned data.
 
-7. [Cropped image settings](https://github.com/BlinkCard/blinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L336) - `CroppedImageSettings`\
+7. [Cropped image settings](https://github.com/microblink/blinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L336) - `CroppedImageSettings`\
 These settings represent the image cropping settings.\
 This class controls how card images are cropped, including the resolution, extension of the cropping area, and whether the cropped image should be returned in the results.
 
-8. [Scanning UX settings](https://github.com/BlinkCard/blinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L359) - `ScanningUxSettings`\
+8. [Scanning UX settings](https://github.com/microblink/blinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L359) - `ScanningUxSettings`\
 These settings allow customization of various aspects of the UI/UX.
 Displaying certain UI elements, haptic feedback, along with choosing the preffered camera position used when capturing document can modified.
 
 **Additional notes:**
 
-- The [blinkcard_settings.dart](https://github.com/BlinkCard/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart) file contains all the settings that can be modified and explains what each setting does in more detail.
+- The [blinkcard_settings.dart](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart) file contains all the settings that can be modified and explains what each setting does in more detail.
 
 - The native documentation for the above mentioned settings can be found here for [Android](https://blinkcard.github.io/blinkcard-android/blinkcard-core/index.html) & [iOS](https://blinkcard.github.io/blinkcard-swift-package/documentation/blinkcard/).
 
-- The native Kotlin & Swift implementation of all BlinkCard settings can be found here for [Android](https://github.com/blinkcard/blinkcard-flutter/blob/main/BlinkCard/android/src/main/kotlin/com/microblink/blinkcard/flutter/serialization/BlinkCardDeserializationUtils.kt) & [iOS](https://github.com/blinkcard/blinkcard-flutter/blob/main/BlinkCard/ios/blinkcard_flutter/Sources/blinkcard_flutter/Serialization/BlinkCardDeserializationUtils.swift) in the BlinkCard deserialization utilities.
+- The native Kotlin & Swift implementation of all BlinkCard settings can be found here for [Android](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/android/src/main/kotlin/com/microblink/blinkcard/flutter/serialization/BlinkCardDeserializationUtils.kt) & [iOS](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/ios/blinkcard_flutter/Sources/blinkcard_flutter/Serialization/BlinkCardDeserializationUtils.swift) in the BlinkCard deserialization utilities.
 
 ### <a name="BlinkCard-result"></a> BlinkCard Results
 
@@ -370,11 +370,11 @@ This result aggregates the outcomes of various liveness checks performed on the 
 
 **Additional notes:**
 
-- The [blinkCard_result.dart](https://github.com/BlinkCard/blinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_result.dart) file contains all the results that can be obtained and explains what each result represents in more detail.
+- The [blinkCard_result.dart](https://github.com/microblink/blinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_result.dart) file contains all the results that can be obtained and explains what each result represents in more detail.
 
-- The native documentation for the above mentioned results can be found here for [Android](https://github.com/blinkcard/blinkcard-flutter/blob/main/BlinkCard/android/src/main/kotlin/com/microblink/blinkcard/flutter/serialization/BlinkCardSerializationUtils.kt) & [iOS](https://github.com/blinkcard/blinkcard-flutter/blob/main/BlinkCard/ios/blinkcard_flutter/Sources/blinkcard_flutter/Serialization/BlinkCardSerializationUtils.swift).
+- The native documentation for the above mentioned results can be found here for [Android](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/android/src/main/kotlin/com/microblink/blinkcard/flutter/serialization/BlinkCardSerializationUtils.kt) & [iOS](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/ios/blinkcard_flutter/Sources/blinkcard_flutter/Serialization/BlinkCardSerializationUtils.swift).
 
-- The native Kotlin & Swift implementation of all BlinkCard results can be found here for [Android](https://github.com/BlinkCard/BlinkCard-flutter/blob/feature/android-platform-channel/BlinkCard/android/src/main/kotlin/com/microblink/BlinkCard/flutter/BlinkCardSerializationUtils.kt) & [iOS](https://github.com/BlinkCard/BlinkCard-flutter/blob/feature/ios-platform-channel/BlinkCard/ios/BlinkCard_flutter/Sources/BlinkCard_flutter/BlinkCardSerializationUtils.swift) in the BlinkCard serialization utilities.
+- The native Kotlin & Swift implementation of all BlinkCard results can be found here for [Android](https://github.com/microblink/BlinkCard-flutter/blob/main/BlinkCard/android/src/main/kotlin/com/microblink/BlinkCard/flutter/BlinkCardSerializationUtils.kt) & [iOS](https://github.com/microblink/BlinkCard-flutter/blob/main/BlinkCard/ios/BlinkCard_flutter/Sources/BlinkCard_flutter/BlinkCardSerializationUtils.swift) in the BlinkCard serialization utilities.
 
 ## <a name="pub-dev"></a> pub.dev
 - The BlinkCard Flutter package can also be found on pub.dev [here](https://pub.dev/packages/blinkcard_flutter).
