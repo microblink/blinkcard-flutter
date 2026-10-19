@@ -1,6 +1,6 @@
 name: blinkcard_flutter
 description: "Flutter plugin for BlinkCard, SDK for scanning and OCR of various identity documents."
-version: 3000.0.0
+version: 3001.0.0
 homepage: https://microblink.com
 
 environment:

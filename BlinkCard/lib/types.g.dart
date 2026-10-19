@@ -6,30 +6,27 @@ part of 'types.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-CardNumberAnonymizationSettings _$CardNumberAnonymizationSettingsFromJson(
+CardNumberRedactionSettings _$CardNumberRedactionSettingsFromJson(
   Map<String, dynamic> json,
-) => CardNumberAnonymizationSettings(
-  anonymizationMode:
-      $enumDecodeNullable(
-        _$AnonymizationModeEnumMap,
-        json['anonymizationMode'],
-      ) ??
-      AnonymizationMode.none,
-  prefixDigitsVisible: (json['prefixDigitsVisible'] as num?)?.toInt() ?? 0,
-  suffixDigitsVisible: (json['suffixDigitsVisible'] as num?)?.toInt() ?? 0,
+) => CardNumberRedactionSettings(
+  mode:
+      $enumDecodeNullable(_$RedactionModeEnumMap, json['mode']) ??
+      RedactionMode.fullResult,
+  prefixDigitsVisible: (json['prefixDigitsVisible'] as num?)?.toInt() ?? 4,
+  suffixDigitsVisible: (json['suffixDigitsVisible'] as num?)?.toInt() ?? 4,
 );
 
-Map<String, dynamic> _$CardNumberAnonymizationSettingsToJson(
-  CardNumberAnonymizationSettings instance,
+Map<String, dynamic> _$CardNumberRedactionSettingsToJson(
+  CardNumberRedactionSettings instance,
 ) => <String, dynamic>{
-  'anonymizationMode': _$AnonymizationModeEnumMap[instance.anonymizationMode]!,
+  'mode': _$RedactionModeEnumMap[instance.mode]!,
   'prefixDigitsVisible': instance.prefixDigitsVisible,
   'suffixDigitsVisible': instance.suffixDigitsVisible,
 };
 
-const _$AnonymizationModeEnumMap = {
-  AnonymizationMode.none: 'none',
-  AnonymizationMode.imageOnly: 'imageOnly',
-  AnonymizationMode.resultFieldsOnly: 'resultFieldsOnly',
-  AnonymizationMode.fullResult: 'fullResult',
+const _$RedactionModeEnumMap = {
+  RedactionMode.none: 'none',
+  RedactionMode.imageOnly: 'imageOnly',
+  RedactionMode.resultFieldsOnly: 'resultFieldsOnly',
+  RedactionMode.fullResult: 'fullResult',
 };

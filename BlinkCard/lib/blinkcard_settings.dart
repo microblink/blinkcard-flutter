@@ -20,6 +20,8 @@ final class BlinkCardSdkSettings {
 
   /// If resources are to be downloaded,
   /// the following is the URL where the resources are hosted.
+  ///
+  /// Default (when omitted): `https://models.cdn.microblink.com/resources`
   String? resourceDownloadUrl;
 
   /// Local folder name where resources will be downloaded and cached.
@@ -30,6 +32,11 @@ final class BlinkCardSdkSettings {
 
   /// **iOS-specific** - If resources downloading is disabled for iOS, this defines the bundle identifier of your iOS app where the resources reside.
   String? bundleIdentifier;
+
+  /// Resource download timeout in milliseconds.
+  ///
+  /// When omitted, the native SDK default applies (30 seconds).
+  int? resourceRequestTimeout;
 
   /// Set a custom HTTPS URL to be used as a proxy for Ping and license checks.
   /// The proxy URL will be applied only if the license has the appropriate rights.
@@ -44,6 +51,7 @@ final class BlinkCardSdkSettings {
     this.resourceDownloadUrl,
     this.resourceLocalFolder,
     this.bundleIdentifier,
+    this.resourceRequestTimeout,
     this.microblinkProxyUrl,
   });
 
@@ -62,16 +70,22 @@ final class BlinkCardSessionSettings {
   /// Defines various parameters that control the scanning process.
   ScanningSettings scanningSettings;
 
-  /// Duration in milliseconds before scanning step
-  /// times out and is cancelled.
+  /// Duration in milliseconds before a scanning step times out and is cancelled.
   ///
   /// If less than zero, scanning will not time out.
-  /// Default: to `15000` (15 seconds)
+  /// Default: `60000` (60 seconds).
   int stepTimeTimeoutInterval;
+
+  /// Duration in milliseconds with no scanning progress before an inactivity timeout.
+  ///
+  /// Set to `0` to disable the inactivity timeout.
+  /// Default: `10000` (10 seconds).
+  int inactivityTimeoutInterval;
 
   BlinkCardSessionSettings({
     ScanningSettings? scanningSettings,
-    this.stepTimeTimeoutInterval = 15000,
+    this.stepTimeTimeoutInterval = 60000,
+    this.inactivityTimeoutInterval = 10000,
   }) : scanningSettings = scanningSettings ?? ScanningSettings();
 
   factory BlinkCardSessionSettings.fromJson(Map<String, dynamic> json) =>
@@ -82,7 +96,7 @@ final class BlinkCardSessionSettings {
 /// Represents the configurable settings for scanning a card.
 ///
 /// This class defines various parameters and policies related to the scanning process,
-/// including image quality handling, data extraction, anonymization, and liveness detection,
+/// including image quality handling, data extraction, redaction, and liveness detection,
 /// along with options for frame processing and image extraction.
 @JsonSerializable()
 final class ScanningSettings {
@@ -96,11 +110,11 @@ final class ScanningSettings {
 
   /// The level of allowed detected tilt of the card in the image.
   ///
-  /// Defines the severity of allowed detected tilt of the card in the image, as defined in [DetectionLevel].
+  /// Defines the severity of allowed detected tilt of the card in the image, as defined in [SensitivityLevel].
   /// Values range from `off` (detection turned off) to higher levels of allowed tilt.
   ///
-  /// Defaults to [DetectionLevel.mid].
-  DetectionLevel tiltDetectionLevel;
+  /// Defaults to [SensitivityLevel.mid].
+  SensitivityLevel tiltSensitivityLevel;
 
   /// Defines the minimum required margin (in percentage) between the edge of the input image and the card. Default value is 0.02 (also recommended value).
   ///
@@ -126,23 +140,23 @@ final class ScanningSettings {
   /// and whether images should be returned for the entire card.
   CroppedImageSettings croppedImageSettings;
 
-  /// Represents the configurable settings for data anonymization.
+  /// Redaction settings for sensitive card data.
   ///
-  /// This defines various parameters and policies related to the anonymization of sensitive data extracted from the payment cards.
-  ///
-  /// Defaults to no anonymization.
-  AnonymizationSettings anonymizationSettings;
+  /// When omitted, the native SDK default redaction policy applies (PAN and CVV
+  /// redacted with four prefix and four suffix digits visible on the card number; IBAN and
+  /// cardholder name not redacted).
+  @JsonKey(includeIfNull: false)
+  RedactionSettings? redactionSettings;
 
   ScanningSettings({
     this.skipImagesWithBlur = true,
-    this.tiltDetectionLevel = DetectionLevel.mid,
+    this.tiltSensitivityLevel = SensitivityLevel.mid,
     this.inputImageMargin = 0.02,
     LivenessSettings? livenessSettings,
-    AnonymizationSettings? anonymizationSettings,
+    this.redactionSettings,
     CroppedImageSettings? croppedImageSettings,
     ExtractionSettings? extractionSettings,
   }) : livenessSettings = livenessSettings ?? LivenessSettings(),
-       anonymizationSettings = anonymizationSettings ?? AnonymizationSettings(),
        croppedImageSettings = croppedImageSettings ?? CroppedImageSettings(),
        extractionSettings = extractionSettings ?? ExtractionSettings();
 
@@ -316,45 +330,36 @@ final class CroppedImageSettings {
   Map<String, dynamic> toJson() => _$CroppedImageSettingsToJson(this);
 }
 
-/// Holds the settings which control the anonymization of returned data.
+/// Holds the settings which control the redaction of returned data.
+///
+/// Assign to [ScanningSettings.redactionSettings] to override native SDK defaults.
+/// Property defaults below apply only when constructing this object explicitly.
 @JsonSerializable()
-final class AnonymizationSettings {
-  /// Defines the mode of cardholder name anonymization.
-  ///
-  /// Default: [AnonymizationMode.none].
-  AnonymizationMode cardholderNameAnonymizationMode;
+final class RedactionSettings {
+  /// Defines the mode of cardholder name redaction.
+  RedactionMode cardholderNameRedactionMode;
 
-  /// Defines the mode of card number prefix anonymization.
-  ///
-  /// Default: [AnonymizationMode.none].
-  AnonymizationMode cardNumberPrefixAnonymizationMode;
+  /// Defines the mode of CVV redaction.
+  RedactionMode cvvRedactionMode;
 
-  /// Defines the mode of CVV anonymization.
-  ///
-  /// Default: [AnonymizationMode.none].
-  AnonymizationMode cvvAnonymizationMode;
+  /// Defines the mode of IBAN redaction.
+  RedactionMode ibanRedactionMode;
 
-  /// Defines the mode of IBAN anonymization.
-  ///
-  /// Default: [AnonymizationMode.none].
-  AnonymizationMode ibanAnonymizationMode;
+  /// Defines the parameters of card number redaction.
+  CardNumberRedactionSettings cardNumberRedactionSettings;
 
-  /// Defines the parameters of card number anonymization.
-  CardNumberAnonymizationSettings cardNumberAnonymizationSettings;
+  /// Holds the settings which control the redaction of returned data.
+  RedactionSettings({
+    this.cardholderNameRedactionMode = RedactionMode.none,
+    this.cvvRedactionMode = RedactionMode.fullResult,
+    this.ibanRedactionMode = RedactionMode.none,
+    CardNumberRedactionSettings? cardNumberRedactionSettings,
+  }) : cardNumberRedactionSettings =
+           cardNumberRedactionSettings ?? CardNumberRedactionSettings();
 
-  /// Holds the settings which control the anonymization of returned data.
-  AnonymizationSettings({
-    this.cardholderNameAnonymizationMode = AnonymizationMode.none,
-    this.cardNumberPrefixAnonymizationMode = AnonymizationMode.none,
-    this.cvvAnonymizationMode = AnonymizationMode.none,
-    this.ibanAnonymizationMode = AnonymizationMode.none,
-    CardNumberAnonymizationSettings? cardNumberAnonymizationSettings,
-  }) : cardNumberAnonymizationSettings =
-           cardNumberAnonymizationSettings ?? CardNumberAnonymizationSettings();
-
-  factory AnonymizationSettings.fromJson(Map<String, dynamic> json) =>
-      _$AnonymizationSettingsFromJson(json);
-  Map<String, dynamic> toJson() => _$AnonymizationSettingsToJson(this);
+  factory RedactionSettings.fromJson(Map<String, dynamic> json) =>
+      _$RedactionSettingsFromJson(json);
+  Map<String, dynamic> toJson() => _$RedactionSettingsToJson(this);
 }
 
 /// Allows customization of various aspects of the UI/UX
@@ -387,6 +392,12 @@ final class ScanningUxSettings {
   /// Default: `true`
   bool allowHapticFeedback;
 
+  /// When enabled, scan sounds are played during scanning activities.
+  /// When disabled, no scan sounds are played.
+  ///
+  /// Default: `true`
+  bool allowScanSound;
+
   /// Allows customization of various aspects of the UI/UX
   /// used during the scanning process.
   ScanningUxSettings({
@@ -394,6 +405,7 @@ final class ScanningUxSettings {
     this.showHelpButton = true,
     this.preferredCameraPosition = CameraPosition.back,
     this.allowHapticFeedback = true,
+    this.allowScanSound = true,
   });
 
   factory ScanningUxSettings.fromJson(Map<String, dynamic> json) =>

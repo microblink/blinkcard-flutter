@@ -40,7 +40,8 @@ struct BlinkCardSerializationUtils {
     static func serializeCardAccountResult(_ cardAccountResult: CardAccountResult) -> [String: Any] {
         var cardAccountDict: [String: Any] = [
             "cardNumber": cardAccountResult.cardNumber,
-            "cardNumberValid": cardAccountResult.cardNumberValid
+            "cardNumberValid": cardAccountResult.cardNumberValid,
+            "binCheckResult": cardAccountResult.binCheckResult.rawValue,
         ]
         
         if let cardNumberPrefix = cardAccountResult.cardNumberPrefix {

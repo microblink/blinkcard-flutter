@@ -11,7 +11,7 @@ flutter create --org com.microblink -a kotlin $appName
 # enter into demo project folder
 pushd $appName
 
-IS_LOCAL_BUILD=true || exit 1
+IS_LOCAL_BUILD=false || exit 1
 if [ "$IS_LOCAL_BUILD" = true ]; then
   # add blinkcard_flutter dependency with local path to pubspec.yaml
   perl -i~ -pe "BEGIN{$/ = undef;} s/dependencies:\n  flutter:\n    sdk: flutter/dependencies:\n  flutter:\n    sdk: flutter\n  blinkcard_flutter:\n    path: ..\/BlinkCard\n  image_picker: 1.1.2/" pubspec.yaml
@@ -31,8 +31,8 @@ pushd android
 # The BlinkCard SDK uses minSdk 24. Replace 'minSdk = flutter.minSdkVersion' with 'minSdk = 24' in app/build.gradle.kts
 sed -i '' 's/minSdk = flutter\.minSdkVersion/minSdk = 24/' app/build.gradle.kts
 
-# The BlinkCard SDK uses Kotlin 2.1.0. Replace Kotlin Android plugin version in settings.gradle.kts
-sed -i '' 's/id("org.jetbrains.kotlin.android") version "[^"]*" apply false/id("org.jetbrains.kotlin.android") version "2.1.0" apply false/' settings.gradle.kts
+# The BlinkCard SDK uses Kotlin 2.2.21. Replace Kotlin Android plugin version in settings.gradle.kts
+sed -i '' 's/id("org.jetbrains.kotlin.android") version "[^"]*" apply false/id("org.jetbrains.kotlin.android") version "2.2.21" apply false/' settings.gradle.kts
 
 # go to flutter root project
 popd
@@ -41,23 +41,33 @@ popd
 pushd ios
 
 # force minimal iOS version to iOS 16.0 as the BlinkCard SDK requires it
-sed -i '' '/<key>MinimumOSVersion<\/key>/{
+if [ -f Flutter/AppFrameworkInfo.plist ]; then
+  sed -i '' '/<key>MinimumOSVersion<\/key>/{
 n
-s/<string>12\.0<\/string>/<string>16.0<\/string>/
+s/<string>[0-9.]*<\/string>/<string>16.0<\/string>/
 }' Flutter/AppFrameworkInfo.plist
+fi
 
-# Xcode project override
+# Xcode project override (Runner and any other targets)
 sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 16.0/' Runner.xcodeproj/project.pbxproj
 
 # xcconfig override
-sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET=[0-9.]*/IPHONEOS_DEPLOYMENT_TARGET=16.0/' Flutter/*.xcconfig
+if compgen -G "Flutter/*.xcconfig" > /dev/null; then
+  sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET=[0-9.]*/IPHONEOS_DEPLOYMENT_TARGET=16.0/' Flutter/*.xcconfig
+fi
 
-# add the camera and photo usage descriptions into Info.plist as the BlinkCard SDK requires it.
-sed -i '' '/<dict>/a\
-  <key>NSCameraUsageDescription</key>\
-  <string>Enable the camera usage for BlinkCard default UX scanning</string>\
-  <key>NSPhotoLibraryUsageDescription</key>\
-  <string>Enable photo gallery usage for BlinkCard DirectAPI scanning</string>\
+# CocoaPods projects (optional; SPM-only Flutter apps may not have a Podfile)
+if [ -f Podfile ]; then
+  sed -i '' "s/^# platform :ios.*/platform :ios, '16.0'/" Podfile
+  sed -i '' "s/^platform :ios.*/platform :ios, '16.0'/" Podfile
+fi
+
+# Add camera and photo usage descriptions at the root of Info.plist (app target only).
+# Do not match every <dict> — nested UIApplicationSceneManifest dicts must stay unchanged.
+perl -i~ -0777 -pe '
+  if (!/NSCameraUsageDescription/) {
+    s/(<plist version="1.0">\s*<dict>)/$1\n  <key>NSCameraUsageDescription<\/key>\n  <string>Enable the camera usage for BlinkCard default UX scanning<\/string>\n  <key>NSPhotoLibraryUsageDescription<\/key>\n  <string>Enable photo gallery usage for BlinkCard DirectAPI scanning<\/string>/s;
+  }
 ' Runner/Info.plist
 
 # update the config for iOS as the minimum target has been raised
@@ -67,8 +77,16 @@ flutter build ios --config-only
 popd
 
 # copy the BlinkCard sample app implementation files
+cp ../sample_files/sample_license_config.dart lib/
+cp ../sample_files/license_settings_panel.dart lib/
+cp ../sample_files/sdk_lifecycle_panel.dart lib/
 cp ../sample_files/main.dart lib/
 cp ../sample_files/blinkcard_result_builder.dart lib/
+cp ../sample_files/module_settings_panel.dart lib/
+cp ../sample_files/scanning_settings_config.dart lib/
+cp ../sample_files/sample_settings_widgets.dart lib/
+cp ../sample_files/sample_redaction_options.dart lib/
+cp ../sample_files/optional_scan_settings_panel.dart lib/
 
 echo ""
 echo "Go to Flutter project folder: cd $appName"

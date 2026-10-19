@@ -10,6 +10,8 @@ The BlinkCard SDK is a comprehensive solution for implementing secure card scann
 
 However, since the wrapper is open source, you can add the features you need on your own.
 
+**Current release:** [3001.0.0](Release%20notes.md) (native Android & iOS SDK 3001.0.0). Upgrading from 3000.x? See [Release notes](Release%20notes.md#300100).
+
 # Table of contents
 - [Licensing](#licensing)
 - [Requirements](#requirements)
@@ -34,6 +36,9 @@ A valid license key is required to initialize the BlinkCard plugin. A free trial
 | OS/API version     | Flutter 3.29 and newer  | iOS 16.0 and newer      | API version 24 and newer   |
 | Camera quality     | -                       | At least 1080p          | At least 1080p             |
 
+**Android host application (SDK 3001):**
+- `compileSdk` **36** and Android Gradle Plugin **8.9.1** or newer
+- Kotlin **2.1** or newer to compile against the plugin (the plugin library is built with Kotlin 2.2.21)
 
 - For additional help with the Flutter setup, view the official [documentation](https://flutter.dev/docs).
 - For more detailed information about the BlinkCard Android and iOS requirements, view the native SDK documentation here ([Android](https://github.com/microblink/blinkcard-android?tab=readme-ov-file#device-requirements) & [iOS](https://github.com/microblink/blinkcard-ios?tab=readme-ov-file#requirements)).
@@ -73,17 +78,17 @@ flutter config --enable-swift-package-manager
 ```
 After this, try to run the sample application again.
 
-- Error: `FlutterGeneratedPluginSwiftPackage has a lower minimum deployment target`
+- Error: `FlutterGeneratedPluginSwiftPackage has a lower minimum deployment target` or `blinkcard-flutter-product` requires iOS 16.0 but the target supports 15.0 (or lower)
 
-To resolve the issue with the minimum deployment target for the `FlutterGeneratedPluginSwiftPackage` package, do the following:
+BlinkCard requires **iOS 16.0+**. The host app’s deployment target must be at least **16.0** so `FlutterGeneratedPluginSwiftPackage` can match the plugin’s Swift package minimum version.
+
 1. Exit Xcode
-2. Run the following command:
+2. Set the iOS deployment target to **16.0** (Xcode: Runner → General → Minimum Deployments, or set `IPHONEOS_DEPLOYMENT_TARGET = 16.0` in `ios/Runner.xcodeproj/project.pbxproj`)
+3. Regenerate iOS config:
 ```bash
 flutter build ios --config-only
 ```
-3. Run the sample application
-
-This should properly configure the minimum deployment target of the package.
+4. Run the sample application again
 
 ## <a name="plugin-integration"></a> Plugin integration
 
@@ -106,6 +111,11 @@ dependencies:
 4. Run the command to install the dependency:
 ```bash
 flutter pub get
+```
+
+5. **iOS only:** set the app’s minimum iOS version to **16.0** (BlinkCard native SDK requirement). In Xcode, set Runner’s **Minimum Deployments** to iOS 16.0, then run:
+```bash
+flutter build ios --config-only
 ```
 
 ## <a name="plugin-usage"></a> Plugin usage
@@ -171,7 +181,7 @@ final sessionSettings = BlinkCardSessionSettings();
 /// Create and modify the scanning settings
 final scanningSettings = ScanningSettings();
 scanningSettings.skipImagesWithBlur = true;
-scanningSettings.tiltDetectionLevel = DetectionLevel.mid;
+scanningSettings.tiltSensitivityLevel = SensitivityLevel.mid;
 
 /// Create and modify the liveness settings
 final livenessSettings = LivenessSettings();
@@ -184,11 +194,13 @@ extractionSettings.extractCardholderName = true;
 extractionSettings.extractCvv = true;
 extractionSettings.extractInvalidCardNumber = false;
 
-/// Create and modify the anonymization settings
-final anonymizationSettings = AnonymizationSettings();
-anonymizationSettings.cardHolderNameAnonymizationMode = AnonymizationMode.imageOnly;
-anonymizationSettings.cvvAnonymizationMode = AnonymizationMode.fullResult;
-anonymizationSettings.cardNumberAnonymizationSettings = CardNumberAnonymizationSettings(
+/// Create and modify the redaction settings (optional).
+/// If omitted, native SDK 3001 redaction defaults apply (PAN/CVV redacted;
+/// four prefix and four suffix digits visible on the card number).
+final redactionSettings = RedactionSettings();
+redactionSettings.cardholderNameRedactionMode = RedactionMode.none;
+redactionSettings.cvvRedactionMode = RedactionMode.fullResult;
+redactionSettings.cardNumberRedactionSettings = CardNumberRedactionSettings(
   prefixDigitsVisible: 1,
   suffixDigitsVisible: 2,
 );
@@ -200,7 +212,7 @@ croppedImageSettings.returnCardImage = true;
 /// Place the above defined settings in the Scanning settings
 scanningSettings.extractionSettings = extractionSettings;
 scanningSettings.livenessSettings = livenessSettings;
-scanningSettings.anonymizationSettings = anonymizationSettings;
+scanningSettings.redactionSettings = redactionSettings;
 scanningSettings.croppedImageSettings = croppedImageSettings;
 
 /// Place the Scanning settings in the Session settings
@@ -213,6 +225,7 @@ scanningUxSettings.showHelpButton = true;
 scanningUxSettings.showIntroductionAlert = false;
 scanningUxSettings.preferredCameraPosition = CameraPosition.back;
 scanningUxSettings.allowHapticFeedback = true;
+scanningUxSettings.allowScanSound = true;
 ```
 
 4. Call the appropriate scanning method (with the default UX, or DirectAPI for static images), handle the results and catch any errors:
@@ -303,39 +316,39 @@ The BlinkCard SDK contains various settings, modifying different parts of scanni
 - Scanning settings
 - Liveness settings
 - Extraction settings
-- Anonymization settings
+- Redaction settings
 - Cropped image settings
 - Scanning UX settings
 
-1. [BlinkCard SDK settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L6) - `BlinkCardSdkSettings` \
-These settings are used for the initialization of the BlinkCard SDK. It contains settings for the license key, and how the models (that the SDK needs for the scanning process) should be obtained.
+1. [BlinkCard SDK settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L8) - `BlinkCardSdkSettings` \
+These settings are used for the initialization of the BlinkCard SDK. It contains settings for the license key, and how the models (that the SDK needs for the scanning process) should be obtained. Optional `resourceRequestTimeout` (milliseconds) controls resource download timeouts on both platforms (native default 30 seconds in SDK 3001).
 
-2. [BlinkCard Session settings](https://github.com/microblink/blinkcard-flutter/main/BlinkCard/lib/blinkCard_settings.dart#L55) - `BlinkCardSessionSettings`\
+2. [BlinkCard Session settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L68) - `BlinkCardSessionSettings`\
 These settings represent the configuration settings for a scanning session.\
-The class that contains specific scanning configurations that define how the scanning session should behave.
+The class that contains specific scanning configurations that define how the scanning session should behave, including `stepTimeTimeoutInterval` (milliseconds, default 60 seconds) and `inactivityTimeoutInterval` (milliseconds, default 10 seconds; `0` disables inactivity timeout).
 
-3. [Scanning settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L87) - `ScanningSettings`\
+3. [Scanning settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L102) - `ScanningSettings`\
 These settings represent the configurable settings for scanning a card.\
-This class defines various parameters and policies related to the scanning process, including image quality handling, data extraction, anonymization, and liveness detection, along with options for frame processing and image extraction.
+This class defines various parameters and policies related to the scanning process, including image quality handling, data extraction, redaction, and liveness detection, along with options for frame processing and image extraction.
 
-4. [Liveness settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L159) - `LivenessSettings`\
+4. [Liveness settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L173) - `LivenessSettings`\
 Settings for liveness detection during card scanning.\
 This class defines various parameters that control the behavior of liveness detection, including thresholds for hand detection, screen and photocopy analysis, and options to skip processing certain frames based on liveness criteria.
 
-5. [Extraction settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L227) - `ExtractionSettings`\
+5. [Extraction settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L241) - `ExtractionSettings`\
 Settings that control which fields and images should be extracted from the payment card.\
 Disabling extraction of unused fields can improve recognition performance or reduce memory usage.
 
-6. [Anonymization settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L318) - `AnonymizationSettings`\
-Holds the settings which control the anonymization of returned data.
+6. [Redaction settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L337) - `RedactionSettings`\
+Optional on `ScanningSettings`. When omitted, native SDK redaction defaults apply. Assign explicitly to override (for example `RedactionMode.none` for unredacted fields).
 
-7. [Cropped image settings](https://github.com/microblink/blinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L336) - `CroppedImageSettings`\
+7. [Cropped image settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L297) - `CroppedImageSettings`\
 These settings represent the image cropping settings.\
 This class controls how card images are cropped, including the resolution, extension of the cropping area, and whether the cropped image should be returned in the results.
 
-8. [Scanning UX settings](https://github.com/microblink/blinkCard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L359) - `ScanningUxSettings`\
+8. [Scanning UX settings](https://github.com/microblink/blinkcard-flutter/blob/main/BlinkCard/lib/blinkcard_settings.dart#L367) - `ScanningUxSettings`\
 These settings allow customization of various aspects of the UI/UX.
-Displaying certain UI elements, haptic feedback, along with choosing the preffered camera position used when capturing document can modified.
+Displaying certain UI elements, haptic feedback, scan sounds, along with choosing the preffered camera position used when capturing document can modified.
 
 **Additional notes:**
 
@@ -354,7 +367,7 @@ Payment card's issuing network.
 
 2. **Card account result** - `List<CardAccountResult>`\
 Payment card accounts found on the card.\
-A list of payment card accounts found on the card. Each result in the list represents a distinct payment account containing details like the card number, CVV, and expiry date.
+A list of payment card accounts found on the card. Each result in the list represents a distinct payment account containing details like the card number, CVV, expiry date, and `binCheckResult` (`pass`, `fail`, or `notAvailable` when BIN check runs).
 
 3. **IBAN** - `String?`\
 The IBAN (International Bank Account Number) of the card, or null if not available.
@@ -367,6 +380,7 @@ The overall liveness check result for the card.\
 This result aggregates the outcomes of various liveness checks performed on the card to determine its authenticity
 - Set to `pass` if all individual checks have passed.
 - Set to `fail` if any individual check has failed.
+- Set to `notAvailable` when a check was not run (SDK 3001; replaces the former `notPerformed` value).
 
 **Additional notes:**
 

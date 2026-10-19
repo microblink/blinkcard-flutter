@@ -24,7 +24,6 @@ import io.flutter.plugin.common.PluginRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 /** BlinkCardFlutterPlugin */
 class BlinkCardFlutterPlugin :
@@ -66,8 +65,15 @@ class BlinkCardFlutterPlugin :
                         sdkSettings = BlinkCardDeserializationUtils.deserializeBlinkCardSdkSettings(sdkSettingsRaw),
                         scanningSessionSettings = BlinkCardDeserializationUtils.deserializeBlinkCardSessionSettings(sessionSettingsRaw),
                         uxSettings = BlinkCardDeserializationUtils.deserializeScanningUxSettings(
-                            stepTimeoutDuration = (sessionSettingsRaw?.get("stepTimeTimeoutInterval") as? Int ?: 15000).milliseconds,
-                            allowHapticFeedback = scanningUxSettingsRaw?.get("allowHapticFeedback") as? Boolean ?: true),
+                            stepTimeoutDuration = BlinkCardDeserializationUtils.durationFromTimeoutMillis(
+                                sessionSettingsRaw?.get("stepTimeTimeoutInterval") as? Int ?: 60000,
+                            ),
+                            inactivityTimeoutDuration = BlinkCardDeserializationUtils.durationFromTimeoutMillis(
+                                sessionSettingsRaw?.get("inactivityTimeoutInterval") as? Int ?: 10000,
+                            ),
+                            allowHapticFeedback = scanningUxSettingsRaw?.get("allowHapticFeedback") as? Boolean ?: true,
+                            allowScanSound = scanningUxSettingsRaw?.get("allowScanSound") as? Boolean ?: true,
+                        ),
                         cameraSettings = BlinkCardDeserializationUtils.deserializeCameraSettings(scanningUxSettingsRaw?.get("preferredCameraPosition") as? String ?: "front"),
                         showOnboardingDialog = scanningUxSettingsRaw?.get("showIntroductionAlert") as? Boolean ?: true,
                         showHelpButton = scanningUxSettingsRaw?.get("showHelpButton") as? Boolean ?: true,

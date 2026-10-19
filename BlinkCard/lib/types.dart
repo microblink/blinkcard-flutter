@@ -5,7 +5,7 @@ part 'types.g.dart';
 ///
 /// This enum is used to configure detection thresholds and enable or disable detection functionality.
 /// The levels range from turning detection off completely to setting various levels of sensitivity (Low, Mid, High).
-enum DetectionLevel {
+enum SensitivityLevel {
   @JsonValue("off")
   off,
   @JsonValue("low")
@@ -52,28 +52,28 @@ enum StrictnessLevel {
 
 /// Result of a single check performed during the document verification process.
 enum CheckResult {
-  @JsonValue("notPerformed")
-  notPerformed,
+  @JsonValue("notAvailable")
+  notAvailable,
   @JsonValue("pass")
   pass,
   @JsonValue("fail")
   fail;
 
   static CheckResult fromString(String s) => switch (s) {
-    "notPerformed" => notPerformed,
+    "notAvailable" => notAvailable,
     "pass" => pass,
     "fail" => fail,
-    _ => notPerformed,
+    _ => notAvailable,
   };
 }
 
-/// Represents level of anonymization performed on the scanning result.
-enum AnonymizationMode {
-  /// Anonymization will not be performed.
+/// Represents level of redaction performed on the scanning result.
+enum RedactionMode {
+  /// Redaction will not be performed.
   @JsonValue("none")
   none,
 
-  /// Full document image is anonymized with black boxes covering sensitive data.
+  /// Full document image is redacted with black boxes covering sensitive data.
   @JsonValue("imageOnly")
   imageOnly,
 
@@ -97,37 +97,37 @@ enum CameraPosition {
   back,
 }
 
-/// Holds the settings which control card number anonymization.
+/// Holds the settings which control card number redaction.
 @JsonSerializable()
-final class CardNumberAnonymizationSettings {
-  /// Defines the mode of card number anonymization.
+final class CardNumberRedactionSettings {
+  /// Defines the mode of card number redaction.
   ///
-  /// Default: [AnonymizationMode.none]
-  AnonymizationMode anonymizationMode;
+  /// Default: [RedactionMode.fullResult]
+  RedactionMode mode;
 
   /// Defines how many digits at the beginning
-  /// of the card number remain visible after anonymization.
+  /// of the card number remain visible after redaction.
   ///
-  /// Default: `0`
+  /// Default: `4`
   int prefixDigitsVisible;
 
   /// Defines how many digits at the end
-  /// of the card number remain visible after anonymization.
+  /// of the card number remain visible after redaction.
   ///
-  /// Default: `0`
+  /// Default: `4`
   int suffixDigitsVisible;
 
-  /// Holds the settings which control card number anonymization.
-  CardNumberAnonymizationSettings({
-    this.anonymizationMode = AnonymizationMode.none,
-    this.prefixDigitsVisible = 0,
-    this.suffixDigitsVisible = 0,
+  /// Holds the settings which control card number redaction.
+  CardNumberRedactionSettings({
+    this.mode = RedactionMode.fullResult,
+    this.prefixDigitsVisible = 4,
+    this.suffixDigitsVisible = 4,
   });
 
-  factory CardNumberAnonymizationSettings.fromJson(Map<String, dynamic> json) =>
-      _$CardNumberAnonymizationSettingsFromJson(json);
+  factory CardNumberRedactionSettings.fromJson(Map<String, dynamic> json) =>
+      _$CardNumberRedactionSettingsFromJson(json);
   Map<String, dynamic> toJson() =>
-      _$CardNumberAnonymizationSettingsToJson(this);
+      _$CardNumberRedactionSettingsToJson(this);
 }
 
 /// Represents the account information of a single account on a card.
@@ -165,6 +165,9 @@ final class CardAccountResult {
   /// The name of the card issuer's country.
   final String? issuerCountry;
 
+  /// Result of the BIN (Bank Identification Number) check for this account.
+  final CheckResult binCheckResult;
+
   CardAccountResult(Map<String, dynamic> nativeCardAccountResult)
     : cardNumber = nativeCardAccountResult["cardNumber"],
       cardNumberValid = nativeCardAccountResult["cardNumberValid"],
@@ -178,7 +181,10 @@ final class CardAccountResult {
       cardCategory = nativeCardAccountResult["cardCategory"],
       issuerName = nativeCardAccountResult["issuerName"],
       issuerCountryCode = nativeCardAccountResult["issuerCountryCode"],
-      issuerCountry = nativeCardAccountResult["issuerCountry"];
+      issuerCountry = nativeCardAccountResult["issuerCountry"],
+      binCheckResult = CheckResult.fromString(
+        nativeCardAccountResult["binCheckResult"] as String? ?? 'notAvailable',
+      );
 }
 
 /// Represents the result of the date extraction.

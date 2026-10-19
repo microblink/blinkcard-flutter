@@ -1,3 +1,6 @@
+# Local Cursor agent rules (personal / team-local reminders)
+.cursor/rules/
+
 # Files and directories created by pub
 .dart_tool/
 .packages

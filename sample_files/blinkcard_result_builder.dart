@@ -55,6 +55,10 @@ class BlinkCardResultBuilder {
         );
         cardAccountString += buildStringResult(result.cvv, "CVV");
         cardAccountString += buildStringResult(
+          result.binCheckResult.name.toUpperCase(),
+          "BIN check result",
+        );
+        cardAccountString += buildStringResult(
           result.issuerName,
           "Issuer name",
         );

@@ -15,6 +15,7 @@ BlinkCardSdkSettings _$BlinkCardSdkSettingsFromJson(
   resourceDownloadUrl: json['resourceDownloadUrl'] as String?,
   resourceLocalFolder: json['resourceLocalFolder'] as String?,
   bundleIdentifier: json['bundleIdentifier'] as String?,
+  resourceRequestTimeout: (json['resourceRequestTimeout'] as num?)?.toInt(),
   microblinkProxyUrl: json['microblinkProxyUrl'] as String?,
 );
 
@@ -27,6 +28,7 @@ Map<String, dynamic> _$BlinkCardSdkSettingsToJson(
   'resourceDownloadUrl': instance.resourceDownloadUrl,
   'resourceLocalFolder': instance.resourceLocalFolder,
   'bundleIdentifier': instance.bundleIdentifier,
+  'resourceRequestTimeout': instance.resourceRequestTimeout,
   'microblinkProxyUrl': instance.microblinkProxyUrl,
 };
 
@@ -40,7 +42,9 @@ BlinkCardSessionSettings _$BlinkCardSessionSettingsFromJson(
             json['scanningSettings'] as Map<String, dynamic>,
           ),
   stepTimeTimeoutInterval:
-      (json['stepTimeTimeoutInterval'] as num?)?.toInt() ?? 15000,
+      (json['stepTimeTimeoutInterval'] as num?)?.toInt() ?? 60000,
+  inactivityTimeoutInterval:
+      (json['inactivityTimeoutInterval'] as num?)?.toInt() ?? 10000,
 );
 
 Map<String, dynamic> _$BlinkCardSessionSettingsToJson(
@@ -48,17 +52,18 @@ Map<String, dynamic> _$BlinkCardSessionSettingsToJson(
 ) => <String, dynamic>{
   'scanningSettings': instance.scanningSettings,
   'stepTimeTimeoutInterval': instance.stepTimeTimeoutInterval,
+  'inactivityTimeoutInterval': instance.inactivityTimeoutInterval,
 };
 
 ScanningSettings _$ScanningSettingsFromJson(Map<String, dynamic> json) =>
     ScanningSettings(
       skipImagesWithBlur: json['skipImagesWithBlur'] as bool? ?? true,
-      tiltDetectionLevel:
+      tiltSensitivityLevel:
           $enumDecodeNullable(
-            _$DetectionLevelEnumMap,
-            json['tiltDetectionLevel'],
+            _$SensitivityLevelEnumMap,
+            json['tiltSensitivityLevel'],
           ) ??
-          DetectionLevel.mid,
+          SensitivityLevel.mid,
       inputImageMargin: (json['inputImageMargin'] as num?)?.toDouble() ?? 0.02,
       livenessSettings:
           json['livenessSettings'] == null
@@ -66,11 +71,11 @@ ScanningSettings _$ScanningSettingsFromJson(Map<String, dynamic> json) =>
               : LivenessSettings.fromJson(
                 json['livenessSettings'] as Map<String, dynamic>,
               ),
-      anonymizationSettings:
-          json['anonymizationSettings'] == null
+      redactionSettings:
+          json['redactionSettings'] == null
               ? null
-              : AnonymizationSettings.fromJson(
-                json['anonymizationSettings'] as Map<String, dynamic>,
+              : RedactionSettings.fromJson(
+                json['redactionSettings'] as Map<String, dynamic>,
               ),
       croppedImageSettings:
           json['croppedImageSettings'] == null
@@ -86,23 +91,24 @@ ScanningSettings _$ScanningSettingsFromJson(Map<String, dynamic> json) =>
               ),
     );
 
-Map<String, dynamic> _$ScanningSettingsToJson(
-  ScanningSettings instance,
-) => <String, dynamic>{
-  'skipImagesWithBlur': instance.skipImagesWithBlur,
-  'tiltDetectionLevel': _$DetectionLevelEnumMap[instance.tiltDetectionLevel]!,
-  'inputImageMargin': instance.inputImageMargin,
-  'livenessSettings': instance.livenessSettings,
-  'extractionSettings': instance.extractionSettings,
-  'croppedImageSettings': instance.croppedImageSettings,
-  'anonymizationSettings': instance.anonymizationSettings,
-};
+Map<String, dynamic> _$ScanningSettingsToJson(ScanningSettings instance) =>
+    <String, dynamic>{
+      'skipImagesWithBlur': instance.skipImagesWithBlur,
+      'tiltSensitivityLevel':
+          _$SensitivityLevelEnumMap[instance.tiltSensitivityLevel]!,
+      'inputImageMargin': instance.inputImageMargin,
+      'livenessSettings': instance.livenessSettings,
+      'extractionSettings': instance.extractionSettings,
+      'croppedImageSettings': instance.croppedImageSettings,
+      if (instance.redactionSettings != null)
+        'redactionSettings': instance.redactionSettings,
+    };
 
-const _$DetectionLevelEnumMap = {
-  DetectionLevel.off: 'off',
-  DetectionLevel.low: 'low',
-  DetectionLevel.mid: 'mid',
-  DetectionLevel.high: 'high',
+const _$SensitivityLevelEnumMap = {
+  SensitivityLevel.off: 'off',
+  SensitivityLevel.low: 'low',
+  SensitivityLevel.mid: 'mid',
+  SensitivityLevel.high: 'high',
 };
 
 LivenessSettings _$LivenessSettingsFromJson(Map<String, dynamic> json) =>
@@ -187,60 +193,43 @@ Map<String, dynamic> _$CroppedImageSettingsToJson(
   'returnCardImage': instance.returnCardImage,
 };
 
-AnonymizationSettings _$AnonymizationSettingsFromJson(
+RedactionSettings _$RedactionSettingsFromJson(
   Map<String, dynamic> json,
-) => AnonymizationSettings(
-  cardholderNameAnonymizationMode:
+) => RedactionSettings(
+  cardholderNameRedactionMode:
       $enumDecodeNullable(
-        _$AnonymizationModeEnumMap,
-        json['cardholderNameAnonymizationMode'],
+        _$RedactionModeEnumMap,
+        json['cardholderNameRedactionMode'],
       ) ??
-      AnonymizationMode.none,
-  cardNumberPrefixAnonymizationMode:
-      $enumDecodeNullable(
-        _$AnonymizationModeEnumMap,
-        json['cardNumberPrefixAnonymizationMode'],
-      ) ??
-      AnonymizationMode.none,
-  cvvAnonymizationMode:
-      $enumDecodeNullable(
-        _$AnonymizationModeEnumMap,
-        json['cvvAnonymizationMode'],
-      ) ??
-      AnonymizationMode.none,
-  ibanAnonymizationMode:
-      $enumDecodeNullable(
-        _$AnonymizationModeEnumMap,
-        json['ibanAnonymizationMode'],
-      ) ??
-      AnonymizationMode.none,
-  cardNumberAnonymizationSettings:
-      json['cardNumberAnonymizationSettings'] == null
+      RedactionMode.none,
+  cvvRedactionMode:
+      $enumDecodeNullable(_$RedactionModeEnumMap, json['cvvRedactionMode']) ??
+      RedactionMode.fullResult,
+  ibanRedactionMode:
+      $enumDecodeNullable(_$RedactionModeEnumMap, json['ibanRedactionMode']) ??
+      RedactionMode.none,
+  cardNumberRedactionSettings:
+      json['cardNumberRedactionSettings'] == null
           ? null
-          : CardNumberAnonymizationSettings.fromJson(
-            json['cardNumberAnonymizationSettings'] as Map<String, dynamic>,
+          : CardNumberRedactionSettings.fromJson(
+            json['cardNumberRedactionSettings'] as Map<String, dynamic>,
           ),
 );
 
-Map<String, dynamic> _$AnonymizationSettingsToJson(
-  AnonymizationSettings instance,
-) => <String, dynamic>{
-  'cardholderNameAnonymizationMode':
-      _$AnonymizationModeEnumMap[instance.cardholderNameAnonymizationMode]!,
-  'cardNumberPrefixAnonymizationMode':
-      _$AnonymizationModeEnumMap[instance.cardNumberPrefixAnonymizationMode]!,
-  'cvvAnonymizationMode':
-      _$AnonymizationModeEnumMap[instance.cvvAnonymizationMode]!,
-  'ibanAnonymizationMode':
-      _$AnonymizationModeEnumMap[instance.ibanAnonymizationMode]!,
-  'cardNumberAnonymizationSettings': instance.cardNumberAnonymizationSettings,
-};
+Map<String, dynamic> _$RedactionSettingsToJson(RedactionSettings instance) =>
+    <String, dynamic>{
+      'cardholderNameRedactionMode':
+          _$RedactionModeEnumMap[instance.cardholderNameRedactionMode]!,
+      'cvvRedactionMode': _$RedactionModeEnumMap[instance.cvvRedactionMode]!,
+      'ibanRedactionMode': _$RedactionModeEnumMap[instance.ibanRedactionMode]!,
+      'cardNumberRedactionSettings': instance.cardNumberRedactionSettings,
+    };
 
-const _$AnonymizationModeEnumMap = {
-  AnonymizationMode.none: 'none',
-  AnonymizationMode.imageOnly: 'imageOnly',
-  AnonymizationMode.resultFieldsOnly: 'resultFieldsOnly',
-  AnonymizationMode.fullResult: 'fullResult',
+const _$RedactionModeEnumMap = {
+  RedactionMode.none: 'none',
+  RedactionMode.imageOnly: 'imageOnly',
+  RedactionMode.resultFieldsOnly: 'resultFieldsOnly',
+  RedactionMode.fullResult: 'fullResult',
 };
 
 ScanningUxSettings _$ScanningUxSettingsFromJson(Map<String, dynamic> json) =>
@@ -254,6 +243,7 @@ ScanningUxSettings _$ScanningUxSettingsFromJson(Map<String, dynamic> json) =>
           ) ??
           CameraPosition.back,
       allowHapticFeedback: json['allowHapticFeedback'] as bool? ?? true,
+      allowScanSound: json['allowScanSound'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$ScanningUxSettingsToJson(ScanningUxSettings instance) =>
@@ -263,6 +253,7 @@ Map<String, dynamic> _$ScanningUxSettingsToJson(ScanningUxSettings instance) =>
       'preferredCameraPosition':
           _$CameraPositionEnumMap[instance.preferredCameraPosition]!,
       'allowHapticFeedback': instance.allowHapticFeedback,
+      'allowScanSound': instance.allowScanSound,
     };
 
 const _$CameraPositionEnumMap = {
