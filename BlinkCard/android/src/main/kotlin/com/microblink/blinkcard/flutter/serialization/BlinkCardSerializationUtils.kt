@@ -3,6 +3,7 @@ package com.microblink.blinkcard.flutter.serialization
 import android.graphics.Bitmap
 import android.util.Base64
 import com.microblink.blinkcard.core.result.BlinkCardSingleSideScanningResult
+import com.microblink.blinkcard.core.result.CheckResult
 import com.microblink.blinkcard.core.result.CardAccountResult
 import com.microblink.blinkcard.core.result.CardLivenessCheckResult
 import com.microblink.blinkcard.core.result.CroppedImageResult
@@ -18,7 +19,9 @@ object BlinkCardSerializationUtils {
         result.issuingNetwork.let { resultJson["issuingNetwork"] = it }
         result.iban?.let { resultJson["iban"] = it }
         result.cardholderName?.let { resultJson["cardholderName"] = it }
-        result.overallCardLivenessResult.let { resultJson["overallCardLivenessResult"] = it.name.lowercase() }
+        result.overallCardLivenessResult.let {
+            resultJson["overallCardLivenessResult"] = serializeCheckResult(it)
+        }
         result.cardAccounts.let {
             resultJson["cardAccounts"] = it.map { cardResult -> serializeCardAccountResult(cardResult) }
         }
@@ -32,6 +35,7 @@ object BlinkCardSerializationUtils {
         val resultJson: MutableMap<String, Any> = mutableMapOf(
             "cardNumber" to cardAccountResult.cardNumber,
             "cardNumberValid" to cardAccountResult.cardNumberValid,
+            "binCheckResult" to serializeCheckResult(cardAccountResult.binCheckResult),
         )
         cardAccountResult.cardNumberPrefix?.let { resultJson["cardNumberPrefix"] = it }
         cardAccountResult.cvv?.let { resultJson["cvv"] = it }
@@ -68,11 +72,20 @@ object BlinkCardSerializationUtils {
 
     private fun serializeCardLivenessCheckResult(cardLivenessCheckResult: CardLivenessCheckResult): Map<String, Any> {
         val resultJson: MutableMap<String, Any> = mutableMapOf()
-        cardLivenessCheckResult.photocopyCheckResult.let { resultJson["photocopyCheckResult"] = it.name.lowercase() }
-        cardLivenessCheckResult.screenCheckResult.let { resultJson["screenCheckResult"] = it.name.lowercase() }
-        cardLivenessCheckResult.cardHeldInHandCheckResult.let { resultJson["cardHeldInHandCheckResult"] = it.name.lowercase() }
+        cardLivenessCheckResult.photocopyCheckResult.let {
+            resultJson["photocopyCheckResult"] = serializeCheckResult(it)
+        }
+        cardLivenessCheckResult.screenCheckResult.let {
+            resultJson["screenCheckResult"] = serializeCheckResult(it)
+        }
+        cardLivenessCheckResult.cardHeldInHandCheckResult.let {
+            resultJson["cardHeldInHandCheckResult"] = serializeCheckResult(it)
+        }
         return resultJson
     }
+
+    private fun serializeCheckResult(checkResult: CheckResult): String =
+        checkResult.name.replaceFirstChar { it.lowercase() }
 
     private fun serializeCroppedImageResult(croppedImageResult: CroppedImageResult): Map<String, String?> {
         return mapOf("image" to encodeBitmap(croppedImageResult.bitmap))

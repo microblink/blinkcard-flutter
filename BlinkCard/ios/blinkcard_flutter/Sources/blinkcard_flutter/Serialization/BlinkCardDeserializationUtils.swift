@@ -11,6 +11,9 @@ import BlinkCard
 import BlinkCardUX
 
 struct BlinkCardDeserializationUtils {
+
+    private static let defaultResourceDownloadUrl = "https://models.cdn.microblink.com/resources"
+    private static let defaultResourcesLocalFolder = "MLModels"
     
     static func deserializeSdkSettings(_ sdkSettingsDict: [String: Any]) throws -> BlinkCardSdkSettings {
         guard let licenseKey = sdkSettingsDict["licenseKey"] as? String, !licenseKey.isEmpty else {
@@ -26,36 +29,63 @@ struct BlinkCardDeserializationUtils {
         if let helloLog = sdkSettingsDict["helloLogEnabled"] as? Bool {
             blinkCardSdkSettings.helloLogEnabled = helloLog
         }
-        
-        if let downloadResources = sdkSettingsDict["downloadResources"] as? Bool {
-            blinkCardSdkSettings.downloadResources = downloadResources
-        }
-        
-        if let resourceDownloadUrl = sdkSettingsDict["resourceDownloadUrl"] as? String {
-            blinkCardSdkSettings.resourceDownloadUrl = resourceDownloadUrl
-        }
-        
-        if let resourceLocalFolder = sdkSettingsDict["resourceLocalFolder"] as? String {
-            blinkCardSdkSettings.resourceLocalFolder = resourceLocalFolder
-        }
-        
-        if let bundleIdentifier = sdkSettingsDict["bundleIdentifier"] as? String,
-            let bundle: Bundle = Bundle.init(identifier: bundleIdentifier) {
-            blinkCardSdkSettings.bundleURL = bundle.bundleURL
-        }
-        
+
         if let microblinkProxyUrl = sdkSettingsDict["microblinkProxyUrl"] as? String {
             blinkCardSdkSettings.microblinkProxyURL = microblinkProxyUrl
         }
-        
+
+        blinkCardSdkSettings.resourcesConfiguration = deserializeResourcesConfiguration(sdkSettingsDict)
+
         return blinkCardSdkSettings
     }
+
+    static func deserializeResourcesConfiguration(_ sdkSettingsDict: [String: Any]) -> ResourcesConfig {
+        let download = sdkSettingsDict["downloadResources"] as? Bool ?? true
+
+        let serviceUrl = sdkSettingsDict["resourceDownloadUrl"] as? String
+            ?? defaultResourceDownloadUrl
+
+        let localFolder = sdkSettingsDict["resourceLocalFolder"] as? String
+            ?? defaultResourcesLocalFolder
+
+        var bundleUrl: URL?
+        if let bundleIdentifier = sdkSettingsDict["bundleIdentifier"] as? String,
+           let bundle = Bundle(identifier: bundleIdentifier) {
+            bundleUrl = bundle.bundleURL
+        }
+
+        var requestTimeout = RequestTimeout.default
+        if let resourceRequestTimeoutMs = sdkSettingsDict["resourceRequestTimeout"] as? NSNumber {
+            let timeoutSeconds = resourceRequestTimeoutMs.doubleValue / 1000.0
+            requestTimeout = RequestTimeout(
+                connectionTimeout: timeoutSeconds,
+                readTimeout: timeoutSeconds,
+                writeTimeout: timeoutSeconds
+            )
+        }
+
+        return ResourcesConfig(
+            download: download,
+            serviceUrl: serviceUrl,
+            localFolder: localFolder,
+            requestTimeout: requestTimeout,
+            bundleUrl: bundleUrl
+        )
+    }
     
+    private static func timeIntervalFromMillis(_ timeoutMillis: Int) -> TimeInterval {
+        TimeInterval(timeoutMillis) / 1000.0
+    }
+
     static func deserializeSessionSettings(_ sessionSettingsDict: [String: Any]) -> BlinkCardSessionSettings {
         var sessionSettings = BlinkCardSessionSettings()
         
-        if let stepTimeoutDuration = sessionSettingsDict["stepTimeTimeoutInterval"] as? Int {
-            sessionSettings.stepTimeoutDuration = TimeInterval(stepTimeoutDuration / 1000)
+        if let stepTimeoutMillis = sessionSettingsDict["stepTimeTimeoutInterval"] as? Int {
+            sessionSettings.stepTimeoutDuration = timeIntervalFromMillis(stepTimeoutMillis)
+        }
+
+        if let inactivityTimeoutMillis = sessionSettingsDict["inactivityTimeoutInterval"] as? Int {
+            sessionSettings.inactivityTimeoutDuration = timeIntervalFromMillis(inactivityTimeoutMillis)
         }
         
         if let scanningSettings = sessionSettingsDict["scanningSettings"] as? [String: Any] {
@@ -73,9 +103,8 @@ struct BlinkCardDeserializationUtils {
             scanningSettings.skipImagesWithBlur = skipImagesWithBlur
         }
         
-        if let tiltDetectionLevel = scanningSettingsDict["tiltDetectionLevel"] as? String {
-            
-            scanningSettings.tiltDetectionLevel = deserializeDetectionLevel(tiltDetectionLevel)
+        if let tiltSensitivityLevel = scanningSettingsDict["tiltSensitivityLevel"] as? String {
+            scanningSettings.tiltSensitivityLevel = deserializeSensitivityLevel(tiltSensitivityLevel)
         }
         
         if let inputImageMargin = scanningSettingsDict["inputImageMargin"] as? Double {
@@ -94,8 +123,8 @@ struct BlinkCardDeserializationUtils {
             scanningSettings.croppedImageSettings = deserializeCroppedImageSettings(croppedImageSettings)
         }
         
-        if let anonymizationSettings = scanningSettingsDict["anonymizationSettings"] as? [String: Any] {
-            scanningSettings.anonymizationSettings = deserializeAnonymizationSettings(anonymizationSettings)
+        if let redactionSettings = scanningSettingsDict["redactionSettings"] as? [String: Any] {
+            scanningSettings.redactionSettings = deserializeRedactionSettings(redactionSettings)
         }
         
         return scanningSettings
@@ -155,74 +184,68 @@ struct BlinkCardDeserializationUtils {
         return ExtractionSettings()
     }
     
-    static func deserializeAnonymizationSettings(_ anonymizationSettingsDict: [String: Any]) -> AnonymizationSettings {
-        var anonymizationSettings = AnonymizationSettings()
+    static func deserializeRedactionSettings(_ redactionSettingsDict: [String: Any]) -> RedactionSettings {
+        var redactionSettings = RedactionSettings()
         
-        if let cardNumberAnonymizationSettings = anonymizationSettingsDict["cardNumberAnonymizationSettings"] as? [String: Any] {
-            
-            anonymizationSettings.cardNumberAnonymizationSettings = deserializeCardNumberAnonymizationSettings(cardNumberAnonymizationSettings)
-        }
-    
-        if let cardNumberPrefixAnonymizationMode = anonymizationSettingsDict["cardNumberPrefixAnonymizationMode"] as? String,
-           let mode = AnonymizationMode(rawValue: cardNumberPrefixAnonymizationMode) {
-            anonymizationSettings.cardNumberPrefixAnonymizationMode = mode
+        if let cardNumberRedactionSettings = redactionSettingsDict["cardNumberRedactionSettings"] as? [String: Any] {
+            redactionSettings.cardNumberRedactionSettings = deserializeCardNumberRedactionSettings(cardNumberRedactionSettings)
         }
         
-        if let cvvAnonymizationMode = anonymizationSettingsDict["cvvAnonymizationMode"] as? String,
-           let mode = AnonymizationMode(rawValue: cvvAnonymizationMode) {
-            anonymizationSettings.cvvAnonymizationMode = mode
+        if let cvvRedactionMode = redactionSettingsDict["cvvRedactionMode"] as? String,
+           let mode = RedactionMode(rawValue: cvvRedactionMode) {
+            redactionSettings.cvvRedactionMode = mode
         }
         
-        if let ibanAnonymizationMode = anonymizationSettingsDict["ibanAnonymizationMode"] as? String,
-           let mode = AnonymizationMode(rawValue: ibanAnonymizationMode) {
-            anonymizationSettings.ibanAnonymizationMode = mode
+        if let ibanRedactionMode = redactionSettingsDict["ibanRedactionMode"] as? String,
+           let mode = RedactionMode(rawValue: ibanRedactionMode) {
+            redactionSettings.ibanRedactionMode = mode
         }
         
-        if let cardholderNameAnonymizationMode = anonymizationSettingsDict["cardholderNameAnonymizationMode"] as? String,
-           let mode = AnonymizationMode(rawValue: cardholderNameAnonymizationMode) {
-            anonymizationSettings.cardholderNameAnonymizationMode = mode
+        if let cardholderNameRedactionMode = redactionSettingsDict["cardholderNameRedactionMode"] as? String,
+           let mode = RedactionMode(rawValue: cardholderNameRedactionMode) {
+            redactionSettings.cardholderNameRedactionMode = mode
         }
         
-        return anonymizationSettings
+        return redactionSettings
     }
     
-    static func deserializeCardNumberAnonymizationSettings(_ cardNumberAnonymizationSettingsDict: [String: Any]) -> CardNumberAnonymizationSettings {
-        var cardNumberAnonymizationSettings = CardNumberAnonymizationSettings()
+    static func deserializeCardNumberRedactionSettings(_ cardNumberRedactionSettingsDict: [String: Any]) -> CardNumberRedactionSettings {
+        var cardNumberRedactionSettings = CardNumberRedactionSettings()
         
-        if let anonymizationMode = cardNumberAnonymizationSettingsDict["anonymizationMode"] as? String,
-        let mode = AnonymizationMode(rawValue: anonymizationMode) {
-            cardNumberAnonymizationSettings.mode = mode
+        if let modeString = cardNumberRedactionSettingsDict["mode"] as? String,
+           let mode = RedactionMode(rawValue: modeString) {
+            cardNumberRedactionSettings.mode = mode
         }
         
-        if let prefixDigitsVisible = cardNumberAnonymizationSettingsDict["prefixDigitsVisible"] as? Int {
-            cardNumberAnonymizationSettings.prefixDigitsVisible = UInt8(prefixDigitsVisible)
+        if let prefixDigitsVisible = cardNumberRedactionSettingsDict["prefixDigitsVisible"] as? Int {
+            cardNumberRedactionSettings.prefixDigitsVisible = UInt8(prefixDigitsVisible)
         }
         
-        if let suffixDigitsVisible = cardNumberAnonymizationSettingsDict["suffixDigitsVisible"] as? Int {
-            cardNumberAnonymizationSettings.suffixDigitsVisible = UInt8(suffixDigitsVisible)
+        if let suffixDigitsVisible = cardNumberRedactionSettingsDict["suffixDigitsVisible"] as? Int {
+            cardNumberRedactionSettings.suffixDigitsVisible = UInt8(suffixDigitsVisible)
         }
 
-        return cardNumberAnonymizationSettings
+        return cardNumberRedactionSettings
     }
     
     static func deserializeScanningUxSettings(_ scanningUxSettingsDict: [String: Any]) -> ScanningUXSettings {
-        
         if let showIntroductionAlert = scanningUxSettingsDict["showIntroductionAlert"] as? Bool,
            let showHelpButton = scanningUxSettingsDict["showHelpButton"] as? Bool,
            let cameraPosition = scanningUxSettingsDict["preferredCameraPosition"] as? String,
-        let allowHapticFeedback = scanningUxSettingsDict["allowHapticFeedback"] as? Bool {
+           let allowHapticFeedback = scanningUxSettingsDict["allowHapticFeedback"] as? Bool,
+           let allowScanSound = scanningUxSettingsDict["allowScanSound"] as? Bool {
             return ScanningUXSettings(
                 showIntroductionAlert: showIntroductionAlert,
                 showHelpButton: showHelpButton,
                 preferredCameraPosition: deserializeCameraPosition(cameraPosition),
-                allowHapticFeedback: allowHapticFeedback)
+                allowHapticFeedback: allowHapticFeedback,
+                allowScanSound: allowScanSound)
         }
-        
+
         return ScanningUXSettings()
-        
     }
     
-    static func deserializeDetectionLevel(_ levelString: String) -> DetectionLevel {
+    static func deserializeSensitivityLevel(_ levelString: String) -> SensitivityLevel {
         switch levelString {
         case "off": return .off
         case "low": return .low

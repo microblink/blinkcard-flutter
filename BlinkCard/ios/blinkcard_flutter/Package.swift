@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "blinkcard-flutter", targets: ["blinkcard_flutter"])
     ],
     dependencies: [
-        .package(url: "https://github.com/BlinkCard/blinkcard-ios.git", exact: .init(3000, 0, 0))
+        .package(url: "https://github.com/BlinkCard/blinkcard-ios.git", exact: .init(3001, 0, 0))
     ],
     targets: [
         .target(
